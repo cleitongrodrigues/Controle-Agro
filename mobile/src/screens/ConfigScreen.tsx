@@ -2,17 +2,45 @@
 // CONFIG SCREEN - Hub de Configurações
 // ══════════════════════════════════════════════════════════
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { AppHeader, ProductListScreen, FarmListScreen } from '../components';
+import { AppHeader, ProductListScreen, FarmListScreen, SettingsScreen } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { useApp } from '../contexts/AppContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 export const ConfigScreen: React.FC = () => {
   const { products, farms } = useApp();
   const [productListVisible, setProductListVisible] = useState(false);
   const [farmListVisible, setFarmListVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  // Fechar todas as modals quando a tela recebe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      setProductListVisible(false);
+      setFarmListVisible(false);
+      setSettingsVisible(false);
+    }, [])
+  );
+
+  // Listener para detectar quando a aba Config é pressionada novamente
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('tabPress' as any, (e: any) => {
+      // Se alguma modal estiver aberta, fechar todas
+      if (productListVisible || farmListVisible || settingsVisible) {
+        setProductListVisible(false);
+        setFarmListVisible(false);
+        setSettingsVisible(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, productListVisible, farmListVisible, settingsVisible]);
 
   const configCards = [
     {
@@ -37,7 +65,7 @@ export const ConfigScreen: React.FC = () => {
       subtitle: 'Nome vendedor, metas e preços',
       icon: '⚙️',
       color: '#8b5cf6',
-      onPress: () => {}, // TODO: Implementar
+      onPress: () => setSettingsVisible(true),
     },
     {
       id: 'sync',
@@ -101,6 +129,12 @@ export const ConfigScreen: React.FC = () => {
       <FarmListScreen
         visible={farmListVisible}
         onClose={() => setFarmListVisible(false)}
+      />
+
+      {/* Settings Modal Screen */}
+      <SettingsScreen
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
       />
     </View>
   );

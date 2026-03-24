@@ -15,6 +15,7 @@ export { ProductPickerModal } from './ProductPickerModal';
 export { ProductFormModal } from './ProductFormModal';
 export { ProductListScreen } from '../screens/ProductListScreen';
 export { FarmListScreen } from '../screens/FarmListScreen';
+export { SettingsScreen } from '../screens/SettingsScreen';
 export { HorizontalPicker } from './HorizontalPicker';
 export { SearchBar } from './SearchBar';
 export { ConfirmModal } from './ConfirmModal';

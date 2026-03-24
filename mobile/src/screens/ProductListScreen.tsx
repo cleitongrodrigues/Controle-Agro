@@ -87,7 +87,7 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ visible, o
   };
   if (!visible) return null;
   return (
-    <View style={globalStyles.container}>
+    <View style={[globalStyles.container, styles.fullScreenOverlay]}>
       <AppHeader 
         title="Gerenciar Produtos" 
         subtitle="Cadastre e edite produtos"
@@ -193,6 +193,15 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ visible, o
 };
 
 const styles = StyleSheet.create({
+  fullScreenOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: Colors.white,
+  },
   scrollContent: {
     flex: 1,
   },

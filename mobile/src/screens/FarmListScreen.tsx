@@ -100,7 +100,7 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
   };
   if (!visible) return null;
   return (
-    <View style={globalStyles.container}>
+    <View style={[globalStyles.container, styles.fullScreenOverlay]}>
       <AppHeader 
         title="Gerenciar Fazendas" 
         subtitle="Cadastre e edite fazendas"
@@ -207,6 +207,15 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
 };
 
 const styles = StyleSheet.create({
+  fullScreenOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: Colors.white,
+  },
   scrollContent: {
     flex: 1,
   },

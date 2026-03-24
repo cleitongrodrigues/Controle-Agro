@@ -9,3 +9,4 @@ export { MetasScreen } from './MetasScreen';
 export { ConfigScreen } from './ConfigScreen';
 export { ProductListScreen } from './ProductListScreen';
 export { FarmListScreen } from './FarmListScreen';
+export { SettingsScreen } from './SettingsScreen';
