@@ -1,0 +1,83 @@
+// ══════════════════════════════════════════════════════════
+// TIPOS GLOBAIS - AGROVENDAS
+// ══════════════════════════════════════════════════════════
+
+export type FarmStatus = 'visitado' | 'pendente' | 'urgente';
+
+export interface Farm {
+  id: string;
+  nome: string;
+  proprietario: string;
+  hectares: number;
+  localizacao: string;
+  telefone?: string;
+  status: FarmStatus;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface SaleHistoryItem {
+  data: string;
+  produto: string;
+  valor: string;
+  nota?: string;
+}
+
+export interface Sale {
+  id: string;
+  fazendaId: string;
+  fazendaNome: string;
+  produto: string;
+  quantidade: number;
+  valorUnitario: number;
+  valorTotal: number;
+  sacasSoja: number;
+  data: string;
+  sincronizado: boolean;
+}
+
+export interface Product {
+  id: string;
+  nome: string;
+  preco: number;
+  categoria: 'herbicida' | 'semente' | 'fertilizante' | 'fungicida' | 'outro';
+}
+
+export interface Goal {
+  nome: string;
+  valorAtual: number;
+  valorMeta: number;
+  porcentagem: number;
+  categoria: string;
+}
+
+export interface Client {
+  iniciais: string;
+  nome: string;
+  detalhe: string;
+  status: 'ativo' | 'sem-compra' | 'pendente';
+}
+
+export interface MonthlyReport {
+  visitasRealizadas: number;
+  clientesAtendidos: number;
+  herbicidas: number;
+  sementes: number;
+  fertilizantes: number;
+  outros: number;
+  total: number;
+}
+
+export interface Commission {
+  percentual: number;
+  valorBase: number;
+  valorComissao: number;
+  mes: string;
+}
+
+export interface Metric {
+  label: string;
+  value: string | number;
+  subtitle: string;
+  variant?: 'default' | 'warning';
+}
