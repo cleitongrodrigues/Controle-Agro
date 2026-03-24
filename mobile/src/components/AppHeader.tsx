@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Spacing, FontSizes } from '../config/theme';
 import { SyncBadge } from './SyncBadge';
 import { useApp } from '../contexts/AppContext';
@@ -14,6 +14,7 @@ interface AppHeaderProps {
   initials?: string;
   onSyncPress?: () => void;
   syncing?: boolean;
+  onBack?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -22,6 +23,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   initials = 'JS',
   onSyncPress,
   syncing = false,
+  onBack,
 }) => {
   const { unsyncedCount } = useApp();
 
@@ -31,9 +33,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <View style={styles.decorCircle2} />
       
       <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+        <View style={styles.leftContent}>
+          {onBack && (
+            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+              <Text style={styles.backIcon}>‹</Text>
+            </TouchableOpacity>
+          )}
+          <View>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+          </View>
         </View>
         <View style={styles.rightContent}>
           <SyncBadge 
@@ -82,6 +91,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     zIndex: 1,
+  },
+  leftContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  backIcon: {
+    fontSize: 32,
+    color: Colors.green[50],
+    fontWeight: '300',
   },
   title: {
     fontSize: FontSizes.xxl,

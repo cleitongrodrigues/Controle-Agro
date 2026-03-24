@@ -3,8 +3,8 @@
 // ══════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { AppHeader, MetricCard, FarmItem, FarmHistoryModal, FarmFormModal, SearchBar, OfflineBanner, ConfirmModal } from '../components';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { AppHeader, MetricCard, FarmItem, FarmHistoryModal, SearchBar, OfflineBanner } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { FARM_HISTORY } from '../config/data';
@@ -13,13 +13,10 @@ import { useApp } from '../contexts/AppContext';
 import { useToast } from '../contexts/ToastContext';
 
 export const MapaScreen: React.FC = () => {
-  const { isOffline, unsyncedCount, syncData, farms, addFarm, updateFarm, deleteFarm } = useApp();
+  const { isOffline, unsyncedCount, syncData, farms } = useApp();
   const { showToast } = useToast();
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [formModalVisible, setFormModalVisible] = useState(false);
-  const [editingFarm, setEditingFarm] = useState<Farm | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<Farm | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncing, setSyncing] = useState(false);
 
@@ -52,58 +49,6 @@ export const MapaScreen: React.FC = () => {
   const handleFarmPress = (farm: Farm) => {
     setSelectedFarm(farm);
     setModalVisible(true);
-  };
-
-
-  // ============================================
-  // FARM CRUD HANDLERS
-  // ============================================
-
-  const handleAddFarm = () => {
-    setEditingFarm(null);
-    setFormModalVisible(true);
-  };
-
-  const handleEditFarm = (farm: Farm) => {
-    setEditingFarm(farm);
-    setFormModalVisible(true);
-  };
-
-  const handleSaveFarm = async (farm: Farm) => {
-    try {
-      if (editingFarm) {
-        await updateFarm(farm.id, farm);
-        showToast('Fazenda atualizada com sucesso!', 'success');
-      } else {
-        await addFarm(farm);
-        showToast('Fazenda cadastrada com sucesso!', 'success');
-      }
-      setFormModalVisible(false);
-      setEditingFarm(null);
-    } catch (error) {
-      showToast('Erro ao salvar fazenda', 'error');
-    }
-  };
-
-  const handleCancelForm = () => {
-    setFormModalVisible(false);
-    setEditingFarm(null);
-  };
-
-  const confirmDelete = (farm: Farm) => {
-    setDeleteConfirm(farm);
-  };
-
-  const handleDeleteFarm = async () => {
-    if (!deleteConfirm) return;
-    
-    try {
-      await deleteFarm(deleteConfirm.id);
-      showToast('Fazenda removida com sucesso!', 'success');
-      setDeleteConfirm(null);
-    } catch (error) {
-      showToast('Erro ao remover fazenda', 'error');
-    }
   };
 
   const handleSync = async () => {
@@ -198,15 +143,7 @@ export const MapaScreen: React.FC = () => {
           </View>
 
           {/* Lista de fazendas */}
-          <View style={styles.farmHeader}>
-            <Text style={globalStyles.sectionTitle}>Fazendas — histórico</Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleAddFarm}
-            >
-              <Text style={styles.addButtonText}>➕ Adicionar</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={globalStyles.sectionTitle}>Fazendas — histórico</Text>
 
           {/* Busca */}
           <View style={styles.searchContainer}>
@@ -229,9 +166,6 @@ export const MapaScreen: React.FC = () => {
                     farm={farm}
                     description={farmDescriptions[farm.id] || 'Sem histórico recente'}
                     onPress={() => handleFarmPress(farm)}
-                    onEdit={() => handleEditFarm(farm)}
-                    onDelete={() => confirmDelete(farm)}
-                    showActions
                   />
                   {index < filteredFarms.length - 1 && <View style={{ height: 0 }} />}
                 </View>
@@ -247,24 +181,6 @@ export const MapaScreen: React.FC = () => {
         onClose={handleCloseModal}
         farm={selectedFarm}
         history={selectedFarm ? (FARM_HISTORY[selectedFarm.id] || []) : []}
-      />
-
-      {/* Modal de Formulário */}
-      <FarmFormModal
-        visible={formModalVisible}
-        farm={editingFarm}
-        onSave={handleSaveFarm}
-        onCancel={handleCancelForm}
-      />
-
-      {/* Modal de Confirmação de Delete */}
-      <ConfirmModal
-        visible={!!deleteConfirm}
-        title="Excluir fazenda?"
-        message={`Deseja realmente excluir a fazenda "${deleteConfirm?.nome}"?`}
-        onConfirm={handleDeleteFarm}
-        onCancel={() => setDeleteConfirm(null)}
-        destructive
       />
     </View>
   );
@@ -354,23 +270,6 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: FontSizes.sm,
     color: Colors.gray[500],
-  },
-  farmHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  addButton: {
-    backgroundColor: Colors.green[600],
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  addButtonText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    color: Colors.white,
   },
   searchContainer: {
     marginBottom: Spacing.md,
