@@ -10,3 +10,4 @@ export { ConfigScreen } from './ConfigScreen';
 export { ProductListScreen } from './ProductListScreen';
 export { FarmListScreen } from './FarmListScreen';
 export { SettingsScreen } from './SettingsScreen';
+export { DataSyncScreen } from './DataSyncScreen';

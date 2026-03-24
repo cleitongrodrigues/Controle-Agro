@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { AppHeader, ProductListScreen, FarmListScreen, SettingsScreen } from '../components';
+import { AppHeader, ProductListScreen, FarmListScreen, SettingsScreen, DataSyncScreen } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { useApp } from '../contexts/AppContext';
@@ -16,6 +16,7 @@ export const ConfigScreen: React.FC = () => {
   const [productListVisible, setProductListVisible] = useState(false);
   const [farmListVisible, setFarmListVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [dataSyncVisible, setDataSyncVisible] = useState(false);
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -25,6 +26,7 @@ export const ConfigScreen: React.FC = () => {
       setProductListVisible(false);
       setFarmListVisible(false);
       setSettingsVisible(false);
+      setDataSyncVisible(false);
     }, [])
   );
 
@@ -32,15 +34,16 @@ export const ConfigScreen: React.FC = () => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress' as any, (e: any) => {
       // Se alguma modal estiver aberta, fechar todas
-      if (productListVisible || farmListVisible || settingsVisible) {
+      if (productListVisible || farmListVisible || settingsVisible || dataSyncVisible) {
         setProductListVisible(false);
         setFarmListVisible(false);
         setSettingsVisible(false);
+        setDataSyncVisible(false);
       }
     });
 
     return unsubscribe;
-  }, [navigation, productListVisible, farmListVisible, settingsVisible]);
+  }, [navigation, productListVisible, farmListVisible, settingsVisible, dataSyncVisible]);
 
   const configCards = [
     {
@@ -73,7 +76,7 @@ export const ConfigScreen: React.FC = () => {
       subtitle: 'Gerenciar cache e sincronização',
       icon: '🔄',
       color: '#3b82f6',
-      onPress: () => {}, // TODO: Implementar
+      onPress: () => setDataSyncVisible(true),
     },
   ];
 
@@ -135,6 +138,12 @@ export const ConfigScreen: React.FC = () => {
       <SettingsScreen
         visible={settingsVisible}
         onClose={() => setSettingsVisible(false)}
+      />
+
+      {/* Data Sync Modal Screen */}
+      <DataSyncScreen
+        visible={dataSyncVisible}
+        onClose={() => setDataSyncVisible(false)}
       />
     </View>
   );
