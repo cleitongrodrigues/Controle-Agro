@@ -4,21 +4,21 @@
 
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { AppHeader, SaleItem, BarterCard, HorizontalPicker, SearchBar, ConfirmModal, OfflineBanner } from '../components';
+import { AppHeader, SaleItem, BarterCard, HorizontalPicker, SearchBar, ConfirmModal, OfflineBanner, ProductPickerModal } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
 import { PRODUCTS, SOJA_PRICE_PER_SACK } from '../config/data';
-import { Sale } from '../types';
+import { Sale, Product } from '../types';
 import { calculateBarterSacks, calculateSaleTotal, generateId, formatDate } from '../utils/helpers';
 import { useToast } from '../contexts/ToastContext';
 import { useApp } from '../contexts/AppContext';
 
 export const VendasScreen: React.FC = () => {
   const { showToast } = useToast();
-  const { farms, sales, addSale, updateSale, deleteSale, loading: appLoading, isOffline, unsyncedCount, syncData } = useApp();
+  const { farms, sales, products, addSale, updateSale, deleteSale, loading: appLoading, isOffline, unsyncedCount, syncData } = useApp();
   
   const [fazendaId, setFazendaId] = useState(farms[0]?.id || '');
-  const [produtoId, setProdutoId] = useState(PRODUCTS[0].id);
+  const [produtoId, setProdutoId] = useState(products[0]?.id || PRODUCTS[0].id);
   const [quantidade, setQuantidade] = useState('10');
   const [valorUnitario, setValorUnitario] = useState('185');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -27,6 +27,7 @@ export const VendasScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Sale | null>(null);
+  const [productModalVisible, setProductModalVisible] = useState(false);
 
   // Vendas iniciais mockadas
   const initialSales: Sale[] = [
@@ -87,7 +88,8 @@ export const VendasScreen: React.FC = () => {
 
   const handleProductChange = (prodId: string) => {
     setProdutoId(prodId);
-    const product = PRODUCTS.find(p => p.id === prodId);
+    const allProducts = [...products, ...PRODUCTS];
+    const product = allProducts.find(p => p.id === prodId);
     if (product && product.preco > 0) {
       setValorUnitario(product.preco.toString());
     } else {
@@ -96,10 +98,25 @@ export const VendasScreen: React.FC = () => {
     setErrors(prev => ({ ...prev, produto: '' }));
   };
 
+  const handleProductSelect = (product: Product) => {
+    setProdutoId(product.id);
+    if (product.preco > 0) {
+      setValorUnitario(product.preco.toString());
+    } else {
+      setValorUnitario('');
+    }
+    setErrors(prev => ({ ...prev, produto: '' }));
+    setProductModalVisible(false);
+  };
+
+  const allProducts = [...products, ...PRODUCTS];
+  const selectedProduct = allProducts.find(p => p.id === produtoId);
+
   const handleEdit = (sale: Sale) => {
     setEditingId(sale.id);
     setFazendaId(sale.fazendaId);
-    setProdutoId(PRODUCTS.find(p => p.nome === sale.produto)?.id || PRODUCTS[0].id);
+    const allProducts = [...products, ...PRODUCTS];
+    setProdutoId(allProducts.find(p => p.nome === sale.produto)?.id || allProducts[0].id);
     setQuantidade(sale.quantidade.toString());
     setValorUnitario(sale.valorUnitario.toString());
     showToast('Editando venda', 'info');
@@ -108,8 +125,9 @@ export const VendasScreen: React.FC = () => {
   const handleCancelEdit = () => {
     setEditingId(null);
     setQuantidade('10');
-    setProdutoId(PRODUCTS[0].id);
-    setValorUnitario(PRODUCTS[0].preco.toString());
+    const allProducts = [...products, ...PRODUCTS];
+    setProdutoId(allProducts[0].id);
+    setValorUnitario(allProducts[0].preco.toString());
   };
 
   const confirmDelete = (sale: Sale) => {
@@ -176,7 +194,8 @@ export const VendasScreen: React.FC = () => {
     }
 
     const fazenda = farms.find(f => f.id === fazendaId);
-    const produto = PRODUCTS.find(p => p.id === produtoId);
+    const allProducts = [...products, ...PRODUCTS];
+    const produto = allProducts.find(p => p.id === produtoId);
 
     if (!fazenda || !produto) {
       showToast('Erro ao processar venda', 'error');
@@ -210,8 +229,9 @@ export const VendasScreen: React.FC = () => {
       // Reset form
       setEditingId(null);
       setQuantidade('10');
-      setProdutoId(PRODUCTS[0].id);
-      setValorUnitario(PRODUCTS[0].preco.toString());
+      const allProducts = [...products, ...PRODUCTS];
+      setProdutoId(allProducts[0].id);
+      setValorUnitario(allProducts[0].preco.toString());
     } catch (error) {
       showToast(editingId ? 'Erro ao atualizar venda' : 'Erro ao registrar venda', 'error');
     } finally {
@@ -247,13 +267,23 @@ export const VendasScreen: React.FC = () => {
             />
             {errors.fazenda && <Text style={styles.errorText}>{errors.fazenda}</Text>}
 
-            <HorizontalPicker
-              label="Produto"
-              items={PRODUCTS.map(p => ({ id: p.id, label: p.nome }))}
-              selectedId={produtoId}
-              onSelect={handleProductChange}
-            />
-            {errors.produto && <Text style={styles.errorText}>{errors.produto}</Text>}
+            <View style={globalStyles.formGroup}>
+              <Text style={globalStyles.formLabel}>Produto</Text>
+              <TouchableOpacity
+                style={[
+                  globalStyles.input,
+                  styles.productButton,
+                  errors.produto && styles.inputError
+                ]}
+                onPress={() => setProductModalVisible(true)}
+              >
+                <Text style={selectedProduct ? styles.productButtonText : styles.productPlaceholder}>
+                  {selectedProduct ? selectedProduct.nome : 'Selecione um produto'}
+                </Text>
+                <Text style={styles.dropdownIcon}>▼</Text>
+              </TouchableOpacity>
+              {errors.produto && <Text style={styles.errorText}>{errors.produto}</Text>}
+            </View>
 
             <View style={styles.formRow}>
               <View style={[globalStyles.formGroup, { flex: 1 }]}>
@@ -359,6 +389,14 @@ export const VendasScreen: React.FC = () => {
         onCancel={() => setDeleteConfirm(null)}
         destructive={true}
       />
+
+      <ProductPickerModal
+        visible={productModalVisible}
+        onClose={() => setProductModalVisible(false)}
+        onSelect={handleProductSelect}
+        selectedId={produtoId}
+        products={allProducts}
+      />
     </View>
   );
 };
@@ -416,5 +454,25 @@ const styles = StyleSheet.create({
     color: Colors.gray[500],
     fontSize: FontSizes.sm,
     paddingVertical: Spacing.lg,
+  },
+  productButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  productButtonText: {
+    fontSize: FontSizes.base,
+    color: Colors.gray[900],
+    flex: 1,
+  },
+  productPlaceholder: {
+    fontSize: FontSizes.base,
+    color: Colors.gray[400],
+    flex: 1,
+  },
+  dropdownIcon: {
+    fontSize: FontSizes.xs,
+    color: Colors.gray[500],
   },
 });

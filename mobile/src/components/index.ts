@@ -11,6 +11,8 @@ export { BarterCard } from './BarterCard';
 export { ToastContainer } from './ToastContainer';
 export { FarmHistoryModal } from './FarmHistoryModal';
 export { FarmFormModal } from './FarmFormModal';
+export { ProductPickerModal } from './ProductPickerModal';
+export { ProductFormModal } from './ProductFormModal';
 export { HorizontalPicker } from './HorizontalPicker';
 export { SearchBar } from './SearchBar';
 export { ConfirmModal } from './ConfirmModal';

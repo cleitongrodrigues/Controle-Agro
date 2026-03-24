@@ -90,6 +90,23 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="config"
+        options={{
+          title: 'Config',
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{
+                ios: 'gearshape.fill',
+                android: 'settings',
+                web: 'gear',
+              }}
+              tintColor={color}
+              size={22}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="two"
         options={{
           href: null,
