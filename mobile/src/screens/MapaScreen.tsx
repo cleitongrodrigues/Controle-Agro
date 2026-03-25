@@ -13,7 +13,7 @@ import { useApp } from '../contexts/AppContext';
 import { useToast } from '../contexts/ToastContext';
 
 export const MapaScreen: React.FC = () => {
-  const { isOffline, unsyncedCount, syncData, farms } = useApp();
+  const { isOffline, unsyncedCount, syncData, farms = [] } = useApp();
   const { showToast } = useToast();
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -65,6 +65,7 @@ export const MapaScreen: React.FC = () => {
 
   // Filtrar fazendas por busca
   const filteredFarms = useMemo(() => {
+    if (!farms || !Array.isArray(farms)) return [];
     if (!searchQuery.trim()) return farms;
     
     const query = searchQuery.toLowerCase();

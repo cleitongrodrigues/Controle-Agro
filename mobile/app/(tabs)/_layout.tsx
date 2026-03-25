@@ -1,6 +1,6 @@
 import React from 'react';
-import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -26,15 +26,7 @@ export default function TabLayout() {
         options={{
           title: 'Mapa',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'map.fill',
-                android: 'location_on',
-                web: 'map',
-              }}
-              tintColor={color}
-              size={22}
-            />
+            <Ionicons name="map" size={24} color={color} />
           ),
         }}
       />
@@ -43,15 +35,7 @@ export default function TabLayout() {
         options={{
           title: 'Vendas',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'calendar',
-                android: 'event',
-                web: 'calendar',
-              }}
-              tintColor={color}
-              size={22}
-            />
+            <Ionicons name="receipt" size={24} color={color} />
           ),
         }}
       />
@@ -60,15 +44,7 @@ export default function TabLayout() {
         options={{
           title: 'Relatório',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'doc.text',
-                android: 'description',
-                web: 'file',
-              }}
-              tintColor={color}
-              size={22}
-            />
+            <Ionicons name="bar-chart" size={24} color={color} />
           ),
         }}
       />
@@ -77,15 +53,7 @@ export default function TabLayout() {
         options={{
           title: 'Metas',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'clock',
-                android: 'schedule',
-                web: 'clock',
-              }}
-              tintColor={color}
-              size={22}
-            />
+            <Ionicons name="trophy" size={24} color={color} />
           ),
         }}
       />
@@ -94,15 +62,7 @@ export default function TabLayout() {
         options={{
           title: 'Config',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'gearshape.fill',
-                android: 'settings',
-                web: 'gear',
-              }}
-              tintColor={color}
-              size={22}
-            />
+            <Ionicons name="settings" size={24} color={color} />
           ),
         }}
       />

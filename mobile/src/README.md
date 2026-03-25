@@ -108,3 +108,5 @@ O código foi migrado do protótipo HTML/CSS para React Native mantendo:
 - ✅ Organização por funcionalidade
 
 A estrutura está preparada para fácil manutenção e escalabilidade!
+
+#### Lembrar de criar um lembrete sobre a frequencia de compra de um cliente

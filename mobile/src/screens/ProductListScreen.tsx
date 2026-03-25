@@ -17,7 +17,7 @@ interface ProductListScreenProps {
 }
 
 export const ProductListScreen: React.FC<ProductListScreenProps> = ({ visible, onClose }) => {
-  const { products, addProduct, updateProduct, deleteProduct } = useApp();
+  const { products = [], addProduct, updateProduct, deleteProduct } = useApp();
   const { showToast } = useToast();
   
   const [productFormVisible, setProductFormVisible] = useState(false);

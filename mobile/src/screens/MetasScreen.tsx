@@ -13,7 +13,7 @@ import { COMMISSION_PERCENTAGE } from '../config/data';
 import { useApp } from '../contexts/AppContext';
 
 export const MetasScreen: React.FC = () => {
-  const { goals, sales, farms } = useApp();
+  const { goals = [], sales = [], farms = [] } = useApp();
 
   // Calcular total de vendas do mês atual
   const totalVendas = useMemo(() => {

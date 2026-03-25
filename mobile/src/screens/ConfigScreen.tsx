@@ -13,7 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export const ConfigScreen: React.FC = () => {
-  const { products, farms, goals } = useApp();
+  const { products = [], farms = [], goals = [] } = useApp();
   const [productListVisible, setProductListVisible] = useState(false);
   const [farmListVisible, setFarmListVisible] = useState(false);
   const [goalListVisible, setGoalListVisible] = useState(false);

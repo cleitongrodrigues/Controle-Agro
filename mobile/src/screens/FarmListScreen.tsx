@@ -17,7 +17,7 @@ interface FarmListScreenProps {
 }
 
 export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose }) => {
-  const { farms, addFarm, updateFarm, deleteFarm } = useApp();
+  const { farms = [], addFarm, updateFarm, deleteFarm } = useApp();
   const { showToast } = useToast();
   
   const [farmFormVisible, setFarmFormVisible] = useState(false);

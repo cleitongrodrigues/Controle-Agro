@@ -15,7 +15,7 @@ import { useApp } from '../contexts/AppContext';
 
 export const VendasScreen: React.FC = () => {
   const { showToast } = useToast();
-  const { farms, sales, products, addSale, updateSale, deleteSale, loading: appLoading, isOffline, unsyncedCount, syncData } = useApp();
+  const { farms = [], sales = [], products = [], addSale, updateSale, deleteSale, loading: appLoading, isOffline, unsyncedCount, syncData } = useApp();
   
   const [fazendaId, setFazendaId] = useState(farms[0]?.id || '');
   const [produtoId, setProdutoId] = useState(products[0]?.id || PRODUCTS[0].id);

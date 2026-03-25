@@ -18,7 +18,7 @@ interface GoalListScreenProps {
 }
 
 export const GoalListScreen: React.FC<GoalListScreenProps> = ({ visible, onClose }) => {
-  const { goals, addGoal, updateGoal, deleteGoal } = useApp();
+  const { goals = [], addGoal, updateGoal, deleteGoal } = useApp();
   const { showToast } = useToast();
   
   const [goalFormVisible, setGoalFormVisible] = useState(false);
