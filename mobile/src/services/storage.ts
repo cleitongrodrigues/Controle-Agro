@@ -35,6 +35,7 @@ const STORAGE_KEYS = {
   SALES: '@agrovendas:sales',
   FARMS: '@agrovendas:farms',
   PRODUCTS: '@agrovendas:products',
+  GOALS: '@agrovendas:goals',
   UNSYNCED_COUNT: '@agrovendas:unsynced_count',
 } as const;
 
@@ -109,6 +110,14 @@ class StorageService {
 
   async getProducts(): Promise<any[] | null> {
     return this.getItem(STORAGE_KEYS.PRODUCTS);
+  }
+
+  async saveGoals(goals: any[]): Promise<void> {
+    return this.setItem(STORAGE_KEYS.GOALS, goals);
+  }
+
+  async getGoals(): Promise<any[] | null> {
+    return this.getItem(STORAGE_KEYS.GOALS);
   }
 
   async saveUnsyncedCount(count: number): Promise<void> {

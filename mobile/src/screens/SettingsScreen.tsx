@@ -17,24 +17,17 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose }) => {
   const { showToast } = useToast();
   
-  // Estados das configurações
   const [vendorName, setVendorName] = useState('João Silva');
-  const [monthlyGoal, setMonthlyGoal] = useState('50000');
-  const [sojaPrice, setSojaPrice] = useState('160');
   const [companyName, setCompanyName] = useState('AgroVendas');
-  
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleSave = () => {
-    // TODO: Salvar no AsyncStorage
     showToast('✅ Configurações salvas com sucesso!', 'success');
     setHasChanges(false);
   };
 
   const handleReset = () => {
     setVendorName('João Silva');
-    setMonthlyGoal('50000');
-    setSojaPrice('160');
     setCompanyName('AgroVendas');
     setHasChanges(false);
     showToast('Configurações restauradas', 'info');
@@ -49,14 +42,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose
   return (
     <View style={[globalStyles.container, styles.fullScreenOverlay]}>
       <AppHeader 
-        title="Configurações Gerais" 
-        subtitle="Personalize o sistema"
+        title="Configurações" 
+        subtitle="Ajustes do sistema"
         onBack={onClose}
       />
       
       <ScrollView style={styles.scrollContent}>
         <View style={globalStyles.section}>
-          {/* Informações do Vendedor */}
           <Text style={styles.sectionTitle}>👤 Informações do Vendedor</Text>
           <View style={globalStyles.card}>
             <View style={globalStyles.formGroup}>
@@ -89,45 +81,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose
             </View>
           </View>
 
-          {/* Metas e Valores */}
-          <Text style={styles.sectionTitle}>🎯 Metas e Valores</Text>
-          <View style={globalStyles.card}>
-            <View style={globalStyles.formGroup}>
-              <Text style={globalStyles.formLabel}>Meta mensal (R$)</Text>
-              <TextInput
-                style={globalStyles.input}
-                value={monthlyGoal}
-                onChangeText={(text) => {
-                  setMonthlyGoal(text);
-                  markChanged();
-                }}
-                placeholder="50000"
-                keyboardType="numeric"
-              />
-              <Text style={styles.helpText}>
-                Meta de vendas para o mês atual
-              </Text>
-            </View>
 
-            <View style={globalStyles.formGroup}>
-              <Text style={globalStyles.formLabel}>Preço da soja (R$/saca)</Text>
-              <TextInput
-                style={globalStyles.input}
-                value={sojaPrice}
-                onChangeText={(text) => {
-                  setSojaPrice(text);
-                  markChanged();
-                }}
-                placeholder="160"
-                keyboardType="numeric"
-              />
-              <Text style={styles.helpText}>
-                Valor usado para conversão em sacas de soja
-              </Text>
-            </View>
-          </View>
-
-          {/* Sobre o Sistema */}
           <Text style={styles.sectionTitle}>ℹ️ Sobre o Sistema</Text>
           <View style={globalStyles.card}>
             <View style={styles.infoRow}>
@@ -146,7 +100,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose
             </View>
           </View>
 
-          {/* Ações do Sistema */}
           <Text style={styles.sectionTitle}>⚙️ Ações do Sistema</Text>
           <View style={globalStyles.card}>
             <TouchableOpacity 
@@ -192,7 +145,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose
             </TouchableOpacity>
           </View>
 
-          {/* Botões de ação */}
           {hasChanges && (
             <View style={styles.actionButtons}>
               <TouchableOpacity 

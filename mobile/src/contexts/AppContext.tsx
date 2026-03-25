@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Sale, Farm, Product } from '../types';
+import { Sale, Farm, Product, Goal } from '../types';
 import { storageService } from '../services/storage';
 import { FARMS, PRODUCTS } from '../config/data';
 
@@ -11,6 +11,7 @@ interface AppContextData {
   sales: Sale[];
   farms: Farm[];
   products: Product[];
+  goals: Goal[];
   addSale: (sale: Sale) => Promise<void>;
   updateSale: (id: string, sale: Sale) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
@@ -20,6 +21,9 @@ interface AppContextData {
   addProduct: (product: Product) => Promise<void>;
   updateProduct: (id: string, product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  addGoal: (goal: Goal) => Promise<void>;
+  updateGoal: (id: string, goal: Goal) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
   unsyncedCount: number;
   syncData: () => Promise<void>;
   loading: boolean;
@@ -32,6 +36,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [sales, setSales] = useState<Sale[]>([]);
   const [farms, setFarms] = useState<Farm[]>(FARMS);
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [unsyncedCount, setUnsyncedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
@@ -55,6 +60,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const savedSales = await storageService.getSales();
       const savedFarms = await storageService.getFarms();
       const savedProducts = await storageService.getProducts();
+      const savedGoals = await storageService.getGoals();
       const savedCount = await storageService.getUnsyncedCount();
       
       if (savedSales) {
@@ -65,6 +71,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       if (savedProducts && savedProducts.length > 0) {
         setProducts(savedProducts);
+      }
+      if (savedGoals && savedGoals.length > 0) {
+        setGoals(savedGoals);
       }
       setUnsyncedCount(savedCount);
     } catch (error) {
@@ -228,11 +237,51 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  // ============================================
+  // GERENCIAMENTO DE METAS
+  // ============================================
+
+  const addGoal = async (goal: Goal) => {
+    try {
+      const newGoals = [goal, ...goals];
+      setGoals(newGoals);
+      await storageService.saveGoals(newGoals);
+    } catch (error) {
+      console.error('Error adding goal:', error);
+      throw error;
+    }
+  };
+
+  const updateGoal = async (id: string, updatedGoal: Goal) => {
+    try {
+      const newGoals = goals.map(goal => 
+        goal.id === id ? updatedGoal : goal
+      );
+      setGoals(newGoals);
+      await storageService.saveGoals(newGoals);
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      throw error;
+    }
+  };
+
+  const deleteGoal = async (id: string) => {
+    try {
+      const newGoals = goals.filter(goal => goal.id !== id);
+      setGoals(newGoals);
+      await storageService.saveGoals(newGoals);
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      throw error;
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       sales,
       farms,
       products,
+      goals,
       addSale, 
       updateSale,
       deleteSale,
@@ -242,6 +291,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addProduct,
       updateProduct,
       deleteProduct,
+      addGoal,
+      updateGoal,
+      deleteGoal,
       unsyncedCount, 
       syncData, 
       loading,

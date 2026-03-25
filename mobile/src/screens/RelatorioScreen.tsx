@@ -20,7 +20,6 @@ export const RelatorioScreen: React.FC = () => {
     fotos: true,
     assinaturas: true,
     pendencias: false,
-    barter: true,
   });
   const [exporting, setExporting] = useState(false);
 
@@ -61,7 +60,7 @@ export const RelatorioScreen: React.FC = () => {
     <View style={globalStyles.container}>
       <AppHeader 
         title="Relatório Mensal" 
-        subtitle="Gerado automaticamente"
+        subtitle="Resumo de vendas"
       />
       
       <ScrollView style={styles.scrollContent}>
@@ -142,16 +141,6 @@ export const RelatorioScreen: React.FC = () => {
                   {options.pendencias && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text style={styles.checkLabel}>Pendências e propostas abertas</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.checkRow}
-                onPress={() => setOptions({ ...options, barter: !options.barter })}
-              >
-                <View style={[styles.checkbox, options.barter && styles.checkboxChecked]}>
-                  {options.barter && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.checkLabel}>Cálculo de barter</Text>
               </TouchableOpacity>
             </View>
 

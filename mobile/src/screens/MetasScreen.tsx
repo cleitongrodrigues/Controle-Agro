@@ -2,7 +2,7 @@
 // METAS SCREEN
 // ══════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { AppHeader, GoalProgress } from '../components';
 import { globalStyles } from '../styles/global';
@@ -10,80 +10,133 @@ import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
 import { Goal, Client, Commission } from '../types';
 import { formatCurrency, calculateGoalPercentage } from '../utils/helpers';
 import { COMMISSION_PERCENTAGE } from '../config/data';
+import { useApp } from '../contexts/AppContext';
 
 export const MetasScreen: React.FC = () => {
-  const totalVendas = 48550;
+  const { goals, sales, farms } = useApp();
+
+  // Calcular total de vendas do mês atual
+  const totalVendas = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return sales
+      .filter(sale => {
+        const saleDate = new Date(sale.data);
+        return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, sale) => sum + sale.valorComDesconto, 0);
+  }, [sales]);
+
+  // Calcular vendas por categoria
+  const salesByCategory = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const categoryTotals: Record<string, number> = {};
+
+    sales
+      .filter(sale => {
+        const saleDate = new Date(sale.data);
+        return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
+      })
+      .forEach(sale => {
+        const category = sale.categoria?.toLowerCase() || 'geral';
+        categoryTotals[category] = (categoryTotals[category] || 0) + sale.valorComDesconto;
+      });
+
+    return categoryTotals;
+  }, [sales]);
+
+  // Mapear metas com valores calculados
+  const goalsWithProgress = useMemo(() => {
+    return goals
+      .filter(goal => goal.ativo)
+      .map(goal => {
+        const category = goal.categoria?.toLowerCase() || 'geral';
+        const valorAtual = salesByCategory[category] || 0;
+        const porcentagem = calculateGoalPercentage(valorAtual, goal.valorMeta);
+
+        return {
+          nome: goal.nome,
+          valorAtual,
+          valorMeta: goal.valorMeta,
+          porcentagem,
+          categoria: goal.categoria,
+        } as Goal;
+      });
+  }, [goals, salesByCategory]);
   
   const commission: Commission = {
     percentual: COMMISSION_PERCENTAGE,
     valorBase: totalVendas,
     valorComissao: totalVendas * COMMISSION_PERCENTAGE,
-    mes: 'Junho',
+    mes: new Date().toLocaleDateString('pt-BR', { month: 'long' }).replace(/^\w/, c => c.toUpperCase()),
   };
 
-  const goals: Goal[] = [
-    {
-      nome: 'Herbicidas & Defensivos',
-      valorAtual: 14200,
-      valorMeta: 18000,
-      porcentagem: calculateGoalPercentage(14200, 18000),
-      categoria: 'herbicidas',
-    },
-    {
-      nome: 'Sementes',
-      valorAtual: 22500,
-      valorMeta: 25000,
-      porcentagem: calculateGoalPercentage(22500, 25000),
-      categoria: 'sementes',
-    },
-    {
-      nome: 'Fertilizantes',
-      valorAtual: 8100,
-      valorMeta: 15000,
-      porcentagem: calculateGoalPercentage(8100, 15000),
-      categoria: 'fertilizantes',
-    },
-    {
-      nome: 'Meta geral',
-      valorAtual: 48550,
-      valorMeta: 60000,
-      porcentagem: calculateGoalPercentage(48550, 60000),
-      categoria: 'geral',
-    },
-  ];
+  // Calcular vendas por fazenda no mês atual
+  const farmStats = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
-  const clients: Client[] = [
-    {
-      iniciais: 'BV',
-      nome: 'Faz. Boa Vista',
-      detalhe: 'R$ 14.200 — 4 pedidos',
-      status: 'ativo',
-    },
-    {
-      iniciais: 'SJ',
-      nome: 'Faz. São João',
-      detalhe: 'R$ 12.400 — 2 pedidos',
-      status: 'ativo',
-    },
-    {
-      iniciais: 'ES',
-      nome: 'Faz. Esperança',
-      detalhe: 'R$ 4.100 — 1 pedido',
-      status: 'ativo',
-    },
-    {
-      iniciais: 'AL',
-      nome: 'Faz. Aliança',
-      detalhe: 'Última compra: Maio/25',
-      status: 'sem-compra',
-    },
-    {
-      iniciais: 'HZ',
-      nome: 'Faz. Horizonte',
-      detalhe: 'Proposta aberta — R$ 24.000',
-      status: 'pendente',
-    },
-  ];
+    const stats: Record<string, { total: number; count: number; lastSale?: string }> = {};
+
+    sales
+      .filter(sale => {
+        const saleDate = new Date(sale.data);
+        return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
+      })
+      .forEach(sale => {
+        if (!stats[sale.fazendaId]) {
+          stats[sale.fazendaId] = { total: 0, count: 0 };
+        }
+        stats[sale.fazendaId].total += sale.valorComDesconto;
+        stats[sale.fazendaId].count += 1;
+        
+        if (!stats[sale.fazendaId].lastSale || sale.data > stats[sale.fazendaId].lastSale!) {
+          stats[sale.fazendaId].lastSale = sale.data;
+        }
+      });
+
+    return stats;
+  }, [sales]);
+
+  // Criar lista de clientes com base nas fazendas
+  const clients: Client[] = useMemo(() => {
+    return farms.map(farm => {
+      const stats = farmStats[farm.id];
+      const initials = farm.nome
+        .split(' ')
+        .map(word => word[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+
+      if (stats && stats.count > 0) {
+        return {
+          iniciais: initials,
+          nome: farm.nome,
+          detalhe: `${formatCurrency(stats.total)} — ${stats.count} ${stats.count === 1 ? 'venda' : 'vendas'}`,
+          status: 'ativo' as const,
+        };
+      }
+
+      return {
+        iniciais: initials,
+        nome: farm.nome,
+        detalhe: 'Sem vendas este mês',
+        status: 'sem-compra' as const,
+      };
+    }).sort((a, b) => {
+      // Clientes ativos primeiro
+      if (a.status === 'ativo' && b.status !== 'ativo') return -1;
+      if (a.status !== 'ativo' && b.status === 'ativo') return 1;
+      return a.nome.localeCompare(b.nome);
+    });
+  }, [farms, farmStats]);
 
   return (
     <View style={globalStyles.container}>
@@ -108,45 +161,57 @@ export const MetasScreen: React.FC = () => {
 
           {/* Metas */}
           <Text style={globalStyles.sectionTitle}>Progresso por categoria</Text>
-          <View style={globalStyles.card}>
-            {goals.map((goal, index) => (
-              <View key={index}>
-                <GoalProgress goal={goal} />
-                {index < goals.length - 1 && <View style={{ height: 0 }} />}
-              </View>
-            ))}
-          </View>
+          {goalsWithProgress.length > 0 ? (
+            <View style={globalStyles.card}>
+              {goalsWithProgress.map((goal, index) => (
+                <View key={index}>
+                  <GoalProgress goal={goal} />
+                  {index < goalsWithProgress.length - 1 && <View style={{ height: 0 }} />}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={globalStyles.card}>
+              <Text style={styles.emptyText}>
+                Nenhuma meta configurada. Crie suas metas na tela de configurações.
+              </Text>
+            </View>
+          )}
 
           {/* Clientes */}
-          <Text style={globalStyles.sectionTitle}>Clientes — compras no mês</Text>
-          <View style={globalStyles.card}>
-            {clients.map((client, index) => (
-              <View key={index}>
-                <View style={styles.clientRow}>
-                  <View style={styles.clientInit}>
-                    <Text style={styles.clientInitText}>{client.iniciais}</Text>
+          {clients.length > 0 && (
+            <>
+              <Text style={globalStyles.sectionTitle}>Clientes — compras no mês</Text>
+              <View style={globalStyles.card}>
+                {clients.map((client, index) => (
+                  <View key={index}>
+                    <View style={styles.clientRow}>
+                      <View style={styles.clientInit}>
+                        <Text style={styles.clientInitText}>{client.iniciais}</Text>
+                      </View>
+                      <View style={styles.clientBody}>
+                        <Text style={styles.clientName}>{client.nome}</Text>
+                        <Text style={styles.clientDetail}>{client.detalhe}</Text>
+                      </View>
+                      <View style={[
+                        styles.statusBadge,
+                        client.status === 'ativo' && styles.statusOk,
+                        client.status === 'sem-compra' && styles.statusNo,
+                        client.status === 'pendente' && styles.statusPend,
+                      ]}>
+                        <Text style={styles.statusText}>
+                          {client.status === 'ativo' ? 'Ativo' :
+                           client.status === 'sem-compra' ? 'Sem compra' :
+                           'Pendente'}
+                        </Text>
+                      </View>
+                    </View>
+                    {index < clients.length - 1 && <View style={{ height: 0 }} />}
                   </View>
-                  <View style={styles.clientBody}>
-                    <Text style={styles.clientName}>{client.nome}</Text>
-                    <Text style={styles.clientDetail}>{client.detalhe}</Text>
-                  </View>
-                  <View style={[
-                    styles.statusBadge,
-                    client.status === 'ativo' && styles.statusOk,
-                    client.status === 'sem-compra' && styles.statusNo,
-                    client.status === 'pendente' && styles.statusPend,
-                  ]}>
-                    <Text style={styles.statusText}>
-                      {client.status === 'ativo' ? 'Ativo' :
-                       client.status === 'sem-compra' ? 'Sem compra' :
-                       'Pendente'}
-                    </Text>
-                  </View>
-                </View>
-                {index < clients.length - 1 && <View style={{ height: 0 }} />}
+                ))}
               </View>
-            ))}
-          </View>
+            </>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -244,5 +309,11 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: FontSizes.xs,
     fontWeight: '600',
+  },
+  emptyText: {
+    fontSize: FontSizes.base,
+    color: Colors.gray[500],
+    textAlign: 'center',
+    paddingVertical: Spacing.xl,
   },
 });

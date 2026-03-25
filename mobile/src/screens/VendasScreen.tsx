@@ -3,13 +3,13 @@
 // ══════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { AppHeader, SaleItem, BarterCard, HorizontalPicker, SearchBar, ConfirmModal, OfflineBanner, ProductPickerModal } from '../components';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { AppHeader, SaleItem, HorizontalPicker, SearchBar, ConfirmModal, OfflineBanner, ProductPickerModal } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
-import { PRODUCTS, SOJA_PRICE_PER_SACK } from '../config/data';
+import { PRODUCTS } from '../config/data';
 import { Sale, Product } from '../types';
-import { calculateBarterSacks, calculateSaleTotal, generateId, formatDate } from '../utils/helpers';
+import { calculateSaleTotal, generateId, formatDate } from '../utils/helpers';
 import { useToast } from '../contexts/ToastContext';
 import { useApp } from '../contexts/AppContext';
 
@@ -21,6 +21,9 @@ export const VendasScreen: React.FC = () => {
   const [produtoId, setProdutoId] = useState(products[0]?.id || PRODUCTS[0].id);
   const [quantidade, setQuantidade] = useState('10');
   const [valorUnitario, setValorUnitario] = useState('185');
+  const [temDesconto, setTemDesconto] = useState(false);
+  const [descontoTipo, setDescontoTipo] = useState<'percentual' | 'valor'>('percentual');
+  const [descontoValor, setDescontoValor] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -39,7 +42,6 @@ export const VendasScreen: React.FC = () => {
       quantidade: 20,
       valorUnitario: 185,
       valorTotal: 3700,
-      sacasSoja: 23.1,
       data: formatDate(new Date()),
       sincronizado: false,
     },
@@ -51,7 +53,6 @@ export const VendasScreen: React.FC = () => {
       quantidade: 20,
       valorUnitario: 412.50,
       valorTotal: 8250,
-      sacasSoja: 51.6,
       data: formatDate(new Date()),
       sincronizado: false,
     },
@@ -63,7 +64,6 @@ export const VendasScreen: React.FC = () => {
       quantidade: 50,
       valorUnitario: 82,
       valorTotal: 4100,
-      sacasSoja: 25.6,
       data: formatDate(new Date()),
       sincronizado: false,
     },
@@ -83,8 +83,19 @@ export const VendasScreen: React.FC = () => {
 
   const qtd = parseFloat(quantidade) || 0;
   const valor = parseFloat(valorUnitario) || 0;
-  const total = calculateSaleTotal(qtd, valor);
-  const sacas = calculateBarterSacks(total);
+  const subtotal = calculateSaleTotal(qtd, valor);
+  
+  // Cálculo do desconto
+  const desconto = parseFloat(descontoValor) || 0;
+  let valorDesconto = 0;
+  if (temDesconto && desconto > 0) {
+    if (descontoTipo === 'percentual') {
+      valorDesconto = (subtotal * desconto) / 100;
+    } else {
+      valorDesconto = desconto;
+    }
+  }
+  const total = subtotal - valorDesconto;
 
   const handleProductChange = (prodId: string) => {
     setProdutoId(prodId);
@@ -119,7 +130,18 @@ export const VendasScreen: React.FC = () => {
     setProdutoId(allProducts.find(p => p.nome === sale.produto)?.id || allProducts[0].id);
     setQuantidade(sale.quantidade.toString());
     setValorUnitario(sale.valorUnitario.toString());
-    showToast('Editando venda', 'info');
+    
+    // Restaurar desconto se existir
+    if (sale.desconto && sale.desconto > 0) {
+      setTemDesconto(true);
+      setDescontoTipo(sale.descontoTipo || 'percentual');
+      setDescontoValor(sale.desconto.toString());
+    } else {
+      setTemDesconto(false);
+      setDescontoValor('');
+    }
+    
+    showToast('Modo de edição ativado', 'info');
   };
 
   const handleCancelEdit = () => {
@@ -128,6 +150,9 @@ export const VendasScreen: React.FC = () => {
     const allProducts = [...products, ...PRODUCTS];
     setProdutoId(allProducts[0].id);
     setValorUnitario(allProducts[0].preco.toString());
+    setTemDesconto(false);
+    setDescontoValor('');
+    setDescontoTipo('percentual');
   };
 
   const confirmDelete = (sale: Sale) => {
@@ -183,6 +208,20 @@ export const VendasScreen: React.FC = () => {
       newErrors.quantidade = 'Quantidade muito alta';
     }
 
+    // Validar desconto
+    if (temDesconto) {
+      const desc = parseFloat(descontoValor) || 0;
+      if (desc <= 0) {
+        newErrors.desconto = 'Desconto deve ser maior que zero';
+      }
+      if (descontoTipo === 'percentual' && desc > 100) {
+        newErrors.desconto = 'Percentual não pode ser maior que 100%';
+      }
+      if (descontoTipo === 'valor' && desc > total) {
+        newErrors.desconto = 'Desconto não pode ser maior que o subtotal';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -212,8 +251,10 @@ export const VendasScreen: React.FC = () => {
         produto: produto.nome,
         quantidade: qtd,
         valorUnitario: valor,
-        valorTotal: total,
-        sacasSoja: sacas,
+        valorTotal: subtotal,
+        desconto: temDesconto ? desconto : undefined,
+        descontoTipo: temDesconto ? descontoTipo : undefined,
+        valorComDesconto: temDesconto ? total : undefined,
         data: formatDate(new Date()),
         sincronizado: false,
       };
@@ -232,6 +273,9 @@ export const VendasScreen: React.FC = () => {
       const allProducts = [...products, ...PRODUCTS];
       setProdutoId(allProducts[0].id);
       setValorUnitario(allProducts[0].preco.toString());
+      setTemDesconto(false);
+      setDescontoValor('');
+      setDescontoTipo('percentual');
     } catch (error) {
       showToast(editingId ? 'Erro ao atualizar venda' : 'Erro ao registrar venda', 'error');
     } finally {
@@ -242,8 +286,8 @@ export const VendasScreen: React.FC = () => {
   return (
     <View style={globalStyles.container}>
       <AppHeader 
-        title="Caderno de Vendas" 
-        subtitle="Registre e consulte pedidos"
+        title="Vendas" 
+        subtitle="Registre e consulte vendas"
         onSyncPress={handleSync}
         syncing={syncing}
       />
@@ -253,7 +297,7 @@ export const VendasScreen: React.FC = () => {
         <View style={globalStyles.section}>
           {/* Formulário */}
           <Text style={globalStyles.sectionTitle}>
-            {editingId ? '✏️ Editando venda' : 'Registrar venda'}
+            {editingId ? '✏️ Editar venda' : 'Nova venda'}
           </Text>
           <View style={globalStyles.card}>
             <HorizontalPicker
@@ -322,7 +366,117 @@ export const VendasScreen: React.FC = () => {
               </View>
             </View>
 
-            <BarterCard sacas={sacas} pricePerSack={SOJA_PRICE_PER_SACK} />
+            {/* Seção de Desconto */}
+            <View style={styles.descontoSection}>
+              <View style={styles.descontoHeader}>
+                <Text style={globalStyles.formLabel}>Aplicar desconto</Text>
+                <Switch
+                  value={temDesconto}
+                  onValueChange={(value) => {
+                    setTemDesconto(value);
+                    if (!value) {
+                      setDescontoValor('');
+                      setErrors(prev => ({ ...prev, desconto: '' }));
+                    }
+                  }}
+                  trackColor={{ false: Colors.gray[200], true: Colors.green[200] }}
+                  thumbColor={temDesconto ? Colors.green[600] : Colors.gray[400]}
+                />
+              </View>
+
+              {temDesconto && (
+                <View style={styles.descontoInputs}>
+                  {/* Seletor de tipo de desconto */}
+                  <View style={styles.descontoTipoRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.tipoButton,
+                        descontoTipo === 'percentual' && styles.tipoButtonActive
+                      ]}
+                      onPress={() => {
+                        setDescontoTipo('percentual');
+                        setDescontoValor('');
+                      }}
+                    >
+                      <Text style={[
+                        styles.tipoButtonText,
+                        descontoTipo === 'percentual' && styles.tipoButtonTextActive
+                      ]}>
+                        % Percentual
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.tipoButton,
+                        descontoTipo === 'valor' && styles.tipoButtonActive
+                      ]}
+                      onPress={() => {
+                        setDescontoTipo('valor');
+                        setDescontoValor('');
+                      }}
+                    >
+                      <Text style={[
+                        styles.tipoButtonText,
+                        descontoTipo === 'valor' && styles.tipoButtonTextActive
+                      ]}>
+                        R$ Valor fixo
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Input do valor do desconto */}
+                  <View style={globalStyles.formGroup}>
+                    <Text style={globalStyles.formLabel}>
+                      {descontoTipo === 'percentual' ? 'Percentual (%)' : 'Valor (R$)'}
+                    </Text>
+                    <TextInput
+                      style={[
+                        globalStyles.input,
+                        errors.desconto && styles.inputError
+                      ]}
+                      value={descontoValor}
+                      onChangeText={(text) => {
+                        setDescontoValor(text);
+                        setErrors(prev => ({ ...prev, desconto: '' }));
+                      }}
+                      keyboardType="numeric"
+                      placeholder={descontoTipo === 'percentual' ? '10' : '50'}
+                    />
+                    {errors.desconto && <Text style={styles.errorText}>{errors.desconto}</Text>}
+                  </View>
+
+                  {/* Resumo de valores */}
+                  <View style={styles.resumoDesconto}>
+                    <View style={styles.resumoRow}>
+                      <Text style={styles.resumoLabel}>Subtotal:</Text>
+                      <Text style={styles.resumoValor}>R$ {subtotal.toFixed(2).replace('.', ',')}</Text>
+                    </View>
+                    {valorDesconto > 0 && (
+                      <View style={styles.resumoRow}>
+                        <Text style={[styles.resumoLabel, styles.descontoText]}>
+                          Desconto ({descontoTipo === 'percentual' ? `${desconto}%` : 'R$'}):
+                        </Text>
+                        <Text style={[styles.resumoValor, styles.descontoText]}>
+                          - R$ {valorDesconto.toFixed(2).replace('.', ',')}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={[styles.resumoRow, styles.totalRow]}>
+                      <Text style={styles.totalLabel}>Total:</Text>
+                      <Text style={styles.totalValor}>R$ {total.toFixed(2).replace('.', ',')}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Resumo simples quando não tem desconto */}
+              {!temDesconto && (
+                <View style={styles.resumoSimples}>
+                  <Text style={styles.resumoLabel}>Valor total:</Text>
+                  <Text style={styles.totalValor}>R$ {total.toFixed(2).replace('.', ',')}</Text>
+                </View>
+              )}
+            </View>
 
             <View style={styles.buttonRow}>
               {editingId && (
@@ -343,7 +497,7 @@ export const VendasScreen: React.FC = () => {
                 disabled={loading}
               >
                 <Text style={globalStyles.btnPrimaryText}>
-                  {loading ? 'Salvando...' : editingId ? 'Atualizar venda' : 'Lançar venda'}
+                  {loading ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Adicionar venda'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -474,5 +628,102 @@ const styles = StyleSheet.create({
   dropdownIcon: {
     fontSize: FontSizes.xs,
     color: Colors.gray[500],
+  },
+  descontoSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
+  },
+  descontoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  descontoInputs: {
+    marginTop: Spacing.md,
+  },
+  descontoTipoRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  tipoButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderWidth: 1.5,
+    borderColor: Colors.gray[200],
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.white,
+    alignItems: 'center',
+  },
+  tipoButtonActive: {
+    borderColor: Colors.green[500],
+    backgroundColor: Colors.green[50],
+  },
+  tipoButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '500',
+    color: Colors.gray[600],
+  },
+  tipoButtonTextActive: {
+    color: Colors.green[700],
+    fontWeight: '600',
+  },
+  resumoDesconto: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.gray[50],
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.gray[100],
+  },
+  resumoSimples: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.green[50],
+    borderRadius: BorderRadius.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resumoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
+  totalRow: {
+    marginTop: Spacing.xs,
+    paddingTop: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[200],
+    marginBottom: 0,
+  },
+  resumoLabel: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[600],
+  },
+  resumoValor: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.gray[700],
+    fontVariant: ['tabular-nums'],
+  },
+  descontoText: {
+    color: Colors.red[600],
+  },
+  totalLabel: {
+    fontSize: FontSizes.base,
+    fontWeight: '600',
+    color: Colors.gray[900],
+  },
+  totalValor: {
+    fontSize: FontSizes.xl,
+    fontWeight: '700',
+    color: Colors.green[700],
+    fontVariant: ['tabular-nums'],
   },
 });

@@ -31,7 +31,9 @@ export interface Sale {
   quantidade: number;
   valorUnitario: number;
   valorTotal: number;
-  sacasSoja: number;
+  desconto?: number;
+  descontoTipo?: 'percentual' | 'valor';
+  valorComDesconto?: number;
   data: string;
   sincronizado: boolean;
 }
@@ -44,11 +46,11 @@ export interface Product {
 }
 
 export interface Goal {
+  id: string;
   nome: string;
-  valorAtual: number;
   valorMeta: number;
-  porcentagem: number;
-  categoria: string;
+  categoria?: string;
+  ativo: boolean;
 }
 
 export interface Client {

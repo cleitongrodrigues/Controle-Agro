@@ -2,8 +2,6 @@
 // UTILS - FORMATAÇÃO E CÁLCULOS
 // ══════════════════════════════════════════════════════════
 
-import { SOJA_PRICE_PER_SACK } from '../config/data';
-
 /**
  * Formata valor monetário para BRL
  */
@@ -24,20 +22,6 @@ export const formatCurrencyValue = (value: number): string => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
-};
-
-/**
- * Calcula equivalência em sacas de soja
- */
-export const calculateBarterSacks = (totalValue: number): number => {
-  return totalValue / SOJA_PRICE_PER_SACK;
-};
-
-/**
- * Formata sacas com uma casa decimal
- */
-export const formatSacks = (sacks: number): string => {
-  return sacks.toFixed(1).replace('.', ',');
 };
 
 /**

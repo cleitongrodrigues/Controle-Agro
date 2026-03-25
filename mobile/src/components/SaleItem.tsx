@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, FontSizes, Spacing } from '../config/theme';
 import { Sale } from '../types';
-import { formatCurrency, formatSacks } from '../utils/helpers';
+import { formatCurrency } from '../utils/helpers';
 
 interface SaleItemProps {
   sale: Sale;
@@ -21,18 +21,36 @@ export const SaleItem: React.FC<SaleItemProps> = ({
   onDelete,
   showActions = false,
 }) => {
+  const hasDesconto = sale.desconto && sale.desconto > 0;
+  const valorFinal = hasDesconto ? (sale.valorComDesconto || sale.valorTotal) : sale.valorTotal;
+  
   return (
     <View style={styles.container}>
       <View style={styles.left}>
         <Text style={styles.product}>{sale.produto}</Text>
-        <Text style={styles.farmTag}>
-          {sale.fazendaNome} · {sale.quantidade} un.
-        </Text>
+        <View style={styles.tagRow}>
+          <Text style={styles.farmTag}>
+            {sale.fazendaNome} · {sale.quantidade} un.
+          </Text>
+          {hasDesconto && (
+            <View style={styles.descontoBadge}>
+              <Text style={styles.descontoBadgeText}>
+                {sale.descontoTipo === 'percentual' ? `${sale.desconto}% OFF` : 'DESCONTO'}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
       <View style={styles.right}>
         <View style={styles.values}>
-          <Text style={styles.brl}>{formatCurrency(sale.valorTotal)}</Text>
-          <Text style={styles.sacas}>{formatSacks(sale.sacasSoja)} sacas</Text>
+          {hasDesconto && (
+            <Text style={styles.valorOriginal}>
+              {formatCurrency(sale.valorTotal)}
+            </Text>
+          )}
+          <Text style={[styles.brl, hasDesconto && styles.brlComDesconto]}>
+            {formatCurrency(valorFinal)}
+          </Text>
         </View>
         {showActions && (onEdit || onDelete) && (
           <View style={styles.actions}>
@@ -81,6 +99,24 @@ const styles = StyleSheet.create({
     color: Colors.gray[500],
     marginTop: 3,
   },
+  tagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: 3,
+  },
+  descontoBadge: {
+    backgroundColor: Colors.green[600],
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  descontoBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: 0.3,
+  },
   right: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -89,16 +125,22 @@ const styles = StyleSheet.create({
   values: {
     alignItems: 'flex-end',
   },
+  valorOriginal: {
+    fontSize: FontSizes.xs,
+    color: Colors.gray[400],
+    textDecorationLine: 'line-through',
+    fontVariant: ['tabular-nums'],
+    marginBottom: 2,
+  },
   brl: {
     fontSize: FontSizes.md,
     fontWeight: '600',
     color: Colors.gray[900],
     fontVariant: ['tabular-nums'],
   },
-  sacas: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[500],
-    marginTop: 3,
+  brlComDesconto: {
+    color: Colors.green[700],
+    fontSize: FontSizes.lg,
   },
   actions: {
     flexDirection: 'row',

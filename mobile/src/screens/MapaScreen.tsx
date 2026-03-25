@@ -83,7 +83,7 @@ export const MapaScreen: React.FC = () => {
     <View style={globalStyles.container}>
       <AppHeader 
         title="AgroVendas" 
-        subtitle="Assistente do Vendedor"
+        subtitle="Sistema de vendas"
         onSyncPress={handleSync}
         syncing={syncing}
       />

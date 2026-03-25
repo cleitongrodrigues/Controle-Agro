@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { AppHeader, ProductListScreen, FarmListScreen, SettingsScreen, DataSyncScreen } from '../components';
+import { GoalListScreen } from './GoalListScreen';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { useApp } from '../contexts/AppContext';
@@ -12,9 +13,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export const ConfigScreen: React.FC = () => {
-  const { products, farms } = useApp();
+  const { products, farms, goals } = useApp();
   const [productListVisible, setProductListVisible] = useState(false);
   const [farmListVisible, setFarmListVisible] = useState(false);
+  const [goalListVisible, setGoalListVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [dataSyncVisible, setDataSyncVisible] = useState(false);
   const navigation = useNavigation();
@@ -25,6 +27,7 @@ export const ConfigScreen: React.FC = () => {
     React.useCallback(() => {
       setProductListVisible(false);
       setFarmListVisible(false);
+      setGoalListVisible(false);
       setSettingsVisible(false);
       setDataSyncVisible(false);
     }, [])
@@ -34,21 +37,22 @@ export const ConfigScreen: React.FC = () => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress' as any, (e: any) => {
       // Se alguma modal estiver aberta, fechar todas
-      if (productListVisible || farmListVisible || settingsVisible || dataSyncVisible) {
+      if (productListVisible || farmListVisible || goalListVisible || settingsVisible || dataSyncVisible) {
         setProductListVisible(false);
         setFarmListVisible(false);
+        setGoalListVisible(false);
         setSettingsVisible(false);
         setDataSyncVisible(false);
       }
     });
 
     return unsubscribe;
-  }, [navigation, productListVisible, farmListVisible, settingsVisible, dataSyncVisible]);
+  }, [navigation, productListVisible, farmListVisible, goalListVisible, settingsVisible, dataSyncVisible]);
 
   const configCards = [
     {
       id: 'products',
-      title: 'Gerenciar Produtos',
+      title: 'Produtos',
       subtitle: `${products.length} ${products.length === 1 ? 'produto cadastrado' : 'produtos cadastrados'}`,
       icon: '📦',
       color: Colors.green[600],
@@ -56,15 +60,23 @@ export const ConfigScreen: React.FC = () => {
     },
     {
       id: 'farms',
-      title: 'Gerenciar Fazendas',
+      title: 'Fazendas',
       subtitle: `${farms.length} ${farms.length === 1 ? 'fazenda cadastrada' : 'fazendas cadastradas'}`,
       icon: '🚜',
       color: Colors.amber[600],
       onPress: () => setFarmListVisible(true),
     },
     {
+      id: 'goals',
+      title: 'Metas',
+      subtitle: `${goals.length} ${goals.length === 1 ? 'meta configurada' : 'metas configuradas'}`,
+      icon: '🎯',
+      color: '#ef4444',
+      onPress: () => setGoalListVisible(true),
+    },
+    {
       id: 'settings',
-      title: 'Configurações Gerais',
+      title: 'Configurações',
       subtitle: 'Nome vendedor, metas e preços',
       icon: '⚙️',
       color: '#8b5cf6',
@@ -72,8 +84,8 @@ export const ConfigScreen: React.FC = () => {
     },
     {
       id: 'sync',
-      title: 'Dados e Sincronização',
-      subtitle: 'Gerenciar cache e sincronização',
+      title: 'Sincronização',
+      subtitle: 'Cache e sincronização de dados',
       icon: '🔄',
       color: '#3b82f6',
       onPress: () => setDataSyncVisible(true),
@@ -82,7 +94,7 @@ export const ConfigScreen: React.FC = () => {
 
   return (
     <View style={globalStyles.container}>
-      <AppHeader title="Configurações" subtitle="Gerencie seu sistema" />
+      <AppHeader title="Configurações" subtitle="Ajustes do sistema" />
       
       <ScrollView style={styles.scrollContent}>
         <View style={globalStyles.section}>
@@ -132,6 +144,12 @@ export const ConfigScreen: React.FC = () => {
       <FarmListScreen
         visible={farmListVisible}
         onClose={() => setFarmListVisible(false)}
+      />
+
+      {/* Goal List Modal Screen */}
+      <GoalListScreen
+        visible={goalListVisible}
+        onClose={() => setGoalListVisible(false)}
       />
 
       {/* Settings Modal Screen */}

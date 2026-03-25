@@ -102,8 +102,8 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
   return (
     <View style={[globalStyles.container, styles.fullScreenOverlay]}>
       <AppHeader 
-        title="Gerenciar Fazendas" 
-        subtitle="Cadastre e edite fazendas"
+        title="Fazendas" 
+        subtitle="Lista de fazendas"
         onBack={onClose}
       />
       

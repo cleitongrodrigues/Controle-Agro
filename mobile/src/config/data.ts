@@ -146,7 +146,7 @@ export const FARM_HISTORY: Record<string, SaleHistoryItem[]> = {
       data: '12/06',
       produto: 'Herbicida Roundup 20L × 10',
       valor: 'R$ 3.700',
-      nota: 'Pagamento via barter — 23 sacas soja',
+      nota: 'Pagamento parcelado em 3x',
     },
     {
       data: '03/05',
@@ -198,6 +198,4 @@ export const FARM_HISTORY: Record<string, SaleHistoryItem[]> = {
     },
   ],
 };
-
-export const SOJA_PRICE_PER_SACK = 160; // R$ por saca de 60kg
 export const COMMISSION_PERCENTAGE = 0.06; // 6%
