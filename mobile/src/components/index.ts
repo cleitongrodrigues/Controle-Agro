@@ -22,6 +22,7 @@ export { SearchBar } from './SearchBar';
 export { ConfirmModal } from './ConfirmModal';
 export { SyncBadge } from './SyncBadge';
 export { OfflineBanner } from './OfflineBanner';
+export { UsuarioFormModal } from './UsuarioFormModal';
 export {
   Skeleton,
   MetricCardSkeleton,

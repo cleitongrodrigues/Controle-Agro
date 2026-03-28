@@ -202,15 +202,15 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: Colors.green[600],
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    padding: Spacing.md,
     borderRadius: BorderRadius.md,
-    alignSelf: 'flex-start',
+    alignItems: 'center',
+    ...Shadows.sm,
   },
   addButtonText: {
-    fontSize: FontSizes.base,
-    fontWeight: '600',
     color: Colors.white,
+    fontSize: FontSizes.md,
+    fontWeight: '600',
   },
   searchContainer: {
     marginBottom: Spacing.md,

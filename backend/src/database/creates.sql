@@ -1,8 +1,3 @@
--- =====================================================
--- SCRIPT DE CRIAÇÃO DO BANCO DE DADOS - CONTROLE AGRO
--- PostgreSQL
--- =====================================================
-
 -- Criar EXTENSION para geração de UUIDs
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

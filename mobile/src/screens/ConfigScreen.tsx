@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { AppHeader, ProductListScreen, FarmListScreen, SettingsScreen, DataSyncScreen } from '../components';
 import { GoalListScreen } from './GoalListScreen';
+import { UsuarioListScreen } from './UsuarioListScreen';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { useApp } from '../contexts/AppContext';
@@ -13,10 +14,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export const ConfigScreen: React.FC = () => {
-  const { products = [], farms = [], goals = [] } = useApp();
+  const { products = [], farms = [], goals = [], usuarios = [] } = useApp();
   const [productListVisible, setProductListVisible] = useState(false);
   const [farmListVisible, setFarmListVisible] = useState(false);
   const [goalListVisible, setGoalListVisible] = useState(false);
+  const [usuarioListVisible, setUsuarioListVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [dataSyncVisible, setDataSyncVisible] = useState(false);
   const navigation = useNavigation();
@@ -28,6 +30,7 @@ export const ConfigScreen: React.FC = () => {
       setProductListVisible(false);
       setFarmListVisible(false);
       setGoalListVisible(false);
+      setUsuarioListVisible(false);
       setSettingsVisible(false);
       setDataSyncVisible(false);
     }, [])
@@ -37,17 +40,18 @@ export const ConfigScreen: React.FC = () => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('tabPress' as any, (e: any) => {
       // Se alguma modal estiver aberta, fechar todas
-      if (productListVisible || farmListVisible || goalListVisible || settingsVisible || dataSyncVisible) {
+      if (productListVisible || farmListVisible || goalListVisible || usuarioListVisible || settingsVisible || dataSyncVisible) {
         setProductListVisible(false);
         setFarmListVisible(false);
         setGoalListVisible(false);
+        setUsuarioListVisible(false);
         setSettingsVisible(false);
         setDataSyncVisible(false);
       }
     });
 
     return unsubscribe;
-  }, [navigation, productListVisible, farmListVisible, goalListVisible, settingsVisible, dataSyncVisible]);
+  }, [navigation, productListVisible, farmListVisible, goalListVisible, usuarioListVisible, settingsVisible, dataSyncVisible]);
 
   const configCards = [
     {
@@ -73,6 +77,14 @@ export const ConfigScreen: React.FC = () => {
       icon: '🎯',
       color: '#ef4444',
       onPress: () => setGoalListVisible(true),
+    },
+    {
+      id: 'usuarios',
+      title: 'Usuários',
+      subtitle: `${usuarios.length} ${usuarios.length === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}`,
+      icon: '👥',
+      color: '#06b6d4',
+      onPress: () => setUsuarioListVisible(true),
     },
     {
       id: 'settings',
@@ -150,6 +162,12 @@ export const ConfigScreen: React.FC = () => {
       <GoalListScreen
         visible={goalListVisible}
         onClose={() => setGoalListVisible(false)}
+      />
+
+      {/* Usuario List Modal Screen */}
+      <UsuarioListScreen
+        visible={usuarioListVisible}
+        onClose={() => setUsuarioListVisible(false)}
       />
 
       {/* Settings Modal Screen */}

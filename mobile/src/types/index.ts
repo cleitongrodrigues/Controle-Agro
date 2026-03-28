@@ -53,6 +53,18 @@ export interface Goal {
   ativo: boolean;
 }
 
+export type UsuarioNivel = 'admin' | 'supervisor' | 'vendedor';
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string;
+  cargo?: string;
+  nivel: UsuarioNivel;
+  ativo: boolean;
+}
+
 export interface Client {
   iniciais: string;
   nome: string;
