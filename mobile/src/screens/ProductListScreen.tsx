@@ -113,58 +113,57 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ visible, o
             />
           </View>
 
-          <View style={globalStyles.card}>
-            {filteredProducts.length === 0 ? (
+          {filteredProducts.length === 0 ? (
+            <View style={globalStyles.card}>
               <Text style={styles.emptyText}>
                 {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
               </Text>
-            ) : (
-              filteredProducts.map((product, index) => (
-                <View key={product.id} style={styles.productItem}>
-                  <View style={styles.productInfo}>
+            </View>
+          ) : (
+            filteredProducts.map((product) => (
+              <View key={product.id} style={styles.productCard}>
+                <View style={styles.productHeader}>
+                  <View style={styles.productTitleRow}>
                     <Text style={styles.productName}>{product.nome}</Text>
-                    <View style={styles.productMeta}>
-                      <View
-                        style={[
-                          styles.categoryBadge,
-                          { backgroundColor: `${getCategoryColor(product.categoria)}20` },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.categoryText,
-                            { color: getCategoryColor(product.categoria) },
-                          ]}
-                        >
-                          {product.categoria}
-                        </Text>
-                      </View>
-                      <Text style={styles.priceText}>
-                        R$ {product.preco.toFixed(2)}
+                    <View
+                      style={[
+                        styles.categoryBadge,
+                        { backgroundColor: getCategoryColor(product.categoria) },
+                      ]}
+                    >
+                      <Text style={styles.categoryText}>
+                        {product.categoria}
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleEditProduct(product)}
-                    >
-                      <Text style={styles.actionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => confirmDeleteProduct(product)}
-                    >
-                      <Text style={styles.actionIcon}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {index < filteredProducts.length - 1 && (
-                    <View style={styles.divider} />
-                  )}
                 </View>
-              ))
-            )}
-          </View>
+
+                <View style={styles.productBody}>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceLabel}>Preço:</Text>
+                    <Text style={styles.priceValue}>R$ {product.preco.toFixed(2)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.productFooter}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditProduct(product)}
+                  >
+                    <Text style={styles.editButtonIcon}>✏️</Text>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmDeleteProduct(product)}
+                  >
+                    <Text style={styles.deleteButtonIcon}>🗑️</Text>
+                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -229,58 +228,95 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.xl,
   },
-  productItem: {
-    position: 'relative',
+  productCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
+    overflow: 'hidden',
   },
-  productInfo: {
-    flex: 1,
-    paddingVertical: Spacing.md,
+  productHeader: {
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+  },
+  productTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   productName: {
-    fontSize: FontSizes.base,
-    fontWeight: '500',
+    fontSize: FontSizes.lg,
+    fontWeight: '700',
     color: Colors.gray[900],
-    marginBottom: 4,
+    flex: 1,
+    marginRight: Spacing.sm,
   },
-  productMeta: {
+  productBody: {
+    padding: Spacing.md,
+  },
+  priceRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.sm,
+  },
+  priceLabel: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[700],
+    fontWeight: '500',
+  },
+  priceValue: {
+    fontSize: FontSizes.lg,
+    color: Colors.green[600],
+    fontWeight: '700',
   },
   categoryBadge: {
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: BorderRadius.pill,
   },
   categoryText: {
     fontSize: FontSizes.xs,
-    fontWeight: '500',
-  },
-  priceText: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[700],
     fontWeight: '600',
+    color: Colors.white,
   },
-  actions: {
+  productFooter: {
     flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingBottom: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
   },
-  actionButton: {
-    backgroundColor: Colors.gray[100],
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
+    borderRightWidth: 1,
+    borderRightColor: Colors.gray[100],
+  },
+  editButtonIcon: {
+    fontSize: 16,
+  },
+  editButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.gray[900],
   },
   deleteButton: {
-    backgroundColor: Colors.red[50],
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  actionIcon: {
-    fontSize: FontSizes.base,
+  deleteButtonIcon: {
+    fontSize: 16,
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.gray[100],
-    marginTop: Spacing.sm,
+  deleteButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.red[600],
   },
 });

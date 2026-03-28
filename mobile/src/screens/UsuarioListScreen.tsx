@@ -137,74 +137,76 @@ export const UsuarioListScreen: React.FC<UsuarioListScreenProps> = ({
           </View>
 
           {/* Lista de usuários */}
-          <View style={globalStyles.card}>
-            {filteredUsuarios.length === 0 ? (
+          {filteredUsuarios.length === 0 ? (
+            <View style={globalStyles.card}>
               <Text style={styles.emptyText}>
                 {searchQuery
                   ? 'Nenhum usuário encontrado'
                   : 'Nenhum usuário cadastrado'}
               </Text>
-            ) : (
-              filteredUsuarios.map((usuario, index) => (
-                <View key={usuario.id} style={styles.usuarioContainer}>
-                  <View style={styles.usuarioInfo}>
-                    <View style={styles.usuarioHeader}>
-                      <Text style={styles.usuarioNome}>{usuario.nome}</Text>
-                      <View
-                        style={[
-                          styles.badge,
-                          { backgroundColor: getNivelColor(usuario.nivel) },
-                        ]}
-                      >
-                        <Text style={styles.badgeText}>
-                          {getNivelLabel(usuario.nivel)}
-                        </Text>
-                      </View>
+            </View>
+          ) : (
+              filteredUsuarios.map((usuario) => (
+              <View key={usuario.id} style={styles.usuarioCard}>
+                <View style={styles.usuarioHeader}>
+                  <View style={styles.usuarioTitleRow}>
+                    <Text style={styles.usuarioNome}>{usuario.nome}</Text>
+                    <View
+                      style={[
+                        styles.badge,
+                        { backgroundColor: getNivelColor(usuario.nivel) },
+                      ]}
+                    >
+                      <Text style={styles.badgeText}>
+                        {getNivelLabel(usuario.nivel)}
+                      </Text>
                     </View>
-
-                    <Text style={styles.usuarioEmail}>📧 {usuario.email}</Text>
-
-                    {usuario.telefone && (
-                      <Text style={styles.usuarioTelefone}>
-                        📱 {usuario.telefone}
-                      </Text>
-                    )}
-
-                    {usuario.cargo && (
-                      <Text style={styles.usuarioCargo}>
-                        💼 {usuario.cargo}
-                      </Text>
-                    )}
-
-                    {!usuario.ativo && (
-                      <View style={styles.inativoTag}>
-                        <Text style={styles.inativoText}>🔒 Inativo</Text>
-                      </View>
-                    )}
                   </View>
+                </View>
 
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleEditUsuario(usuario)}
-                    >
-                      <Text style={styles.actionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => confirmDeleteUsuario(usuario)}
-                    >
-                      <Text style={styles.actionIcon}>🗑️</Text>
-                    </TouchableOpacity>
+                <View style={styles.usuarioBody}>
+                  <View style={styles.usuarioDetailRow}>
+                    <Text style={styles.usuarioIcon}>📧</Text>
+                    <Text style={styles.usuarioDetail}>{usuario.email}</Text>
                   </View>
-
-                  {index < filteredUsuarios.length - 1 && (
-                    <View style={styles.divider} />
+                  {usuario.telefone && (
+                    <View style={styles.usuarioDetailRow}>
+                      <Text style={styles.usuarioIcon}>📱</Text>
+                      <Text style={styles.usuarioDetail}>{usuario.telefone}</Text>
+                    </View>
+                  )}
+                  {usuario.cargo && (
+                    <View style={styles.usuarioDetailRow}>
+                      <Text style={styles.usuarioIcon}>💼</Text>
+                      <Text style={styles.usuarioDetail}>{usuario.cargo}</Text>
+                    </View>
+                  )}
+                  {!usuario.ativo && (
+                    <View style={styles.inativoTag}>
+                      <Text style={styles.inativoText}>🔒 Inativo</Text>
+                    </View>
                   )}
                 </View>
-              ))
-            )}
-          </View>
+
+                <View style={styles.usuarioFooter}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditUsuario(usuario)}
+                  >
+                    <Text style={styles.editButtonIcon}>✏️</Text>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmDeleteUsuario(usuario)}
+                  >
+                    <Text style={styles.deleteButtonIcon}>🗑️</Text>
+                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -268,48 +270,57 @@ const styles = StyleSheet.create({
     color: Colors.gray[700],
     fontSize: FontSizes.md,
   },
-  usuarioContainer: {
-    position: 'relative',
-  },
-  usuarioInfo: {
-    paddingVertical: Spacing.md,
+  usuarioCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
+    overflow: 'hidden',
   },
   usuarioHeader: {
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+  },
+  usuarioTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.xs,
   },
   usuarioNome: {
     fontSize: FontSizes.lg,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.gray[900],
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  usuarioBody: {
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  usuarioDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  usuarioIcon: {
+    fontSize: 16,
+    width: 24,
+  },
+  usuarioDetail: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[700],
     flex: 1,
   },
   badge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.pill,
   },
   badgeText: {
     color: Colors.white,
     fontSize: FontSizes.xs,
     fontWeight: '600',
-  },
-  usuarioEmail: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[700],
-    marginTop: Spacing.xs,
-  },
-  usuarioTelefone: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[700],
-    marginTop: 4,
-  },
-  usuarioCargo: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[700],
-    marginTop: 4,
   },
   inativoTag: {
     marginTop: Spacing.xs,
@@ -324,30 +335,43 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     fontWeight: '600',
   },
-  actions: {
-    position: 'absolute',
-    right: 0,
-    top: Spacing.md,
+  usuarioFooter: {
     flexDirection: 'row',
-    gap: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.gray[100],
-    justifyContent: 'center',
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
+    borderRightWidth: 1,
+    borderRightColor: Colors.gray[100],
+  },
+  editButtonIcon: {
+    fontSize: 16,
+  },
+  editButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.gray[900],
   },
   deleteButton: {
-    backgroundColor: Colors.red[600] + '20',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  actionIcon: {
-    fontSize: FontSizes.md,
+  deleteButtonIcon: {
+    fontSize: 16,
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.gray[100],
-    marginTop: Spacing.md,
+  deleteButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.red[600],
   },
 });

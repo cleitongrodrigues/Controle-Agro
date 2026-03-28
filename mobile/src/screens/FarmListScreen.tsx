@@ -126,59 +126,71 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
             />
           </View>
 
-          <View style={globalStyles.card}>
-            {filteredFarms.length === 0 ? (
+          {filteredFarms.length === 0 ? (
+            <View style={globalStyles.card}>
               <Text style={styles.emptyText}>
                 {searchQuery ? 'Nenhuma fazenda encontrada' : 'Nenhuma fazenda cadastrada'}
               </Text>
-            ) : (
-              filteredFarms.map((farm, index) => (
-                <View key={farm.id} style={styles.farmItem}>
-                  <View style={styles.farmInfo}>
+            </View>
+          ) : (
+            filteredFarms.map((farm) => (
+              <View key={farm.id} style={styles.farmCard}>
+                <View style={styles.farmHeader}>
+                  <View style={styles.farmTitleRow}>
                     <Text style={styles.farmName}>{farm.nome}</Text>
-                    <Text style={styles.farmDetail}>👤 {farm.proprietario}</Text>
-                    <Text style={styles.farmDetail}>📍 {farm.localizacao}</Text>
-                    <Text style={styles.farmDetail}>🌾 {farm.hectares} hectares</Text>
-                    {farm.telefone && (
-                      <Text style={styles.farmDetail}>📞 {farm.telefone}</Text>
-                    )}
                     <View
                       style={[
                         styles.statusBadge,
-                        { backgroundColor: `${getStatusColor(farm.status)}20` },
+                        { backgroundColor: getStatusColor(farm.status) },
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: getStatusColor(farm.status) },
-                        ]}
-                      >
+                      <Text style={styles.statusText}>
                         {getStatusLabel(farm.status)}
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleEditFarm(farm)}
-                    >
-                      <Text style={styles.actionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => confirmDeleteFarm(farm)}
-                    >
-                      <Text style={styles.actionIcon}>🗑️</Text>
-                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.farmBody}>
+                  <View style={styles.farmDetailRow}>
+                    <Text style={styles.farmIcon}>👤</Text>
+                    <Text style={styles.farmDetail}>{farm.proprietario}</Text>
                   </View>
-                  {index < filteredFarms.length - 1 && (
-                    <View style={styles.divider} />
+                  <View style={styles.farmDetailRow}>
+                    <Text style={styles.farmIcon}>📍</Text>
+                    <Text style={styles.farmDetail}>{farm.localizacao}</Text>
+                  </View>
+                  <View style={styles.farmDetailRow}>
+                    <Text style={styles.farmIcon}>🌾</Text>
+                    <Text style={styles.farmDetail}>{farm.hectares} hectares</Text>
+                  </View>
+                  {farm.telefone && (
+                    <View style={styles.farmDetailRow}>
+                      <Text style={styles.farmIcon}>📞</Text>
+                      <Text style={styles.farmDetail}>{farm.telefone}</Text>
+                    </View>
                   )}
                 </View>
-              ))
-            )}
-          </View>
+
+                <View style={styles.farmFooter}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditFarm(farm)}
+                  >
+                    <Text style={styles.editButtonIcon}>✏️</Text>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmDeleteFarm(farm)}
+                  >
+                    <Text style={styles.deleteButtonIcon}>🗑️</Text>
+                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -243,56 +255,95 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.xl,
   },
-  farmItem: {
-    position: 'relative',
-    paddingVertical: Spacing.md,
+  farmCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
+    overflow: 'hidden',
   },
-  farmInfo: {
-    flex: 1,
-    paddingBottom: Spacing.sm,
+  farmHeader: {
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+  },
+  farmTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   farmName: {
     fontSize: FontSizes.lg,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.gray[900],
-    marginBottom: Spacing.xs,
+    flex: 1,
+    marginRight: Spacing.sm,
+  },
+  farmBody: {
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  farmDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  farmIcon: {
+    fontSize: 16,
+    width: 24,
   },
   farmDetail: {
     fontSize: FontSizes.sm,
     color: Colors.gray[700],
-    marginBottom: 4,
+    flex: 1,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.pill,
-    alignSelf: 'flex-start',
-    marginTop: Spacing.xs,
   },
   statusText: {
     fontSize: FontSizes.xs,
     fontWeight: '600',
+    color: Colors.white,
   },
-  actions: {
+  farmFooter: {
     flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingBottom: Spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
   },
-  actionButton: {
-    backgroundColor: Colors.gray[100],
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.sm,
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
+    borderRightWidth: 1,
+    borderRightColor: Colors.gray[100],
+  },
+  editButtonIcon: {
+    fontSize: 16,
+  },
+  editButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.gray[900],
   },
   deleteButton: {
-    backgroundColor: Colors.red[50],
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  actionIcon: {
-    fontSize: FontSizes.base,
+  deleteButtonIcon: {
+    fontSize: 16,
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.gray[100],
-    marginTop: Spacing.sm,
+  deleteButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.red[600],
   },
 });

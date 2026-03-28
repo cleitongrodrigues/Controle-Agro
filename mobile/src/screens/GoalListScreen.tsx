@@ -106,57 +106,60 @@ export const GoalListScreen: React.FC<GoalListScreenProps> = ({ visible, onClose
             />
           </View>
 
-          <View style={globalStyles.card}>
-            {filteredGoals.length === 0 ? (
+          {filteredGoals.length === 0 ? (
+            <View style={globalStyles.card}>
               <Text style={styles.emptyText}>
                 {searchQuery ? 'Nenhuma meta encontrada' : 'Nenhuma meta cadastrada'}
               </Text>
-            ) : (
-              filteredGoals.map((goal, index) => (
-                <View key={goal.id} style={styles.goalItem}>
-                  <View style={styles.goalInfo}>
-                    <View style={styles.goalHeader}>
-                      <Text style={[styles.goalName, !goal.ativo && styles.goalNameInactive]}>
-                        {goal.nome}
-                      </Text>
-                      {!goal.ativo && (
-                        <View style={styles.inactiveBadge}>
-                          <Text style={styles.inactiveBadgeText}>Inativa</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.goalMeta}>
-                      <Text style={styles.goalValue}>
-                        Meta: {formatCurrency(goal.valorMeta)}
-                      </Text>
-                      {goal.categoria && (
-                        <Text style={styles.goalCategory}>
-                          📁 {goal.categoria}
-                        </Text>
-                      )}
-                    </View>
+            </View>
+          ) : (
+            filteredGoals.map((goal) => (
+              <View key={goal.id} style={styles.goalCard}>
+                <View style={styles.goalHeader}>
+                  <View style={styles.goalTitleRow}>
+                    <Text style={[styles.goalName, !goal.ativo && styles.goalNameInactive]}>
+                      {goal.nome}
+                    </Text>
+                    {!goal.ativo && (
+                      <View style={styles.inactiveBadge}>
+                        <Text style={styles.inactiveBadgeText}>Inativa</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={styles.actions}>
-                    <TouchableOpacity
-                      style={styles.actionButton}
-                      onPress={() => handleEditGoal(goal)}
-                    >
-                      <Text style={styles.actionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => confirmDeleteGoal(goal)}
-                    >
-                      <Text style={styles.actionIcon}>🗑️</Text>
-                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.goalBody}>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.metaLabel}>Meta:</Text>
+                    <Text style={styles.metaValue}>{formatCurrency(goal.valorMeta)}</Text>
                   </View>
-                  {index < filteredGoals.length - 1 && (
-                    <View style={styles.divider} />
+                  {goal.categoria && (
+                    <View style={styles.categoriaRow}>
+                      <Text style={styles.categoriaIcon}>📁</Text>
+                      <Text style={styles.categoriaText}>{goal.categoria}</Text>
+                    </View>
                   )}
                 </View>
-              ))
-            )}
-          </View>
+
+                <View style={styles.goalFooter}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditGoal(goal)}
+                  >
+                    <Text style={styles.editButtonIcon}>✏️</Text>
+                    <Text style={styles.editButtonText}>Editar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => confirmDeleteGoal(goal)}
+                  >
+                    <Text style={styles.deleteButtonIcon}>🗑️</Text>
+                    <Text style={styles.deleteButtonText}>Excluir</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -221,23 +224,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.xl,
   },
-  goalItem: {
-    position: 'relative',
-  },
-  goalInfo: {
-    flex: 1,
-    paddingVertical: Spacing.md,
+  goalCard: {
+    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
+    overflow: 'hidden',
   },
   goalHeader: {
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[100],
+  },
+  goalTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: 4,
   },
   goalName: {
-    fontSize: FontSizes.base,
-    fontWeight: '600',
+    fontSize: FontSizes.lg,
+    fontWeight: '700',
     color: Colors.gray[900],
+    flex: 1,
   },
   goalNameInactive: {
     color: Colors.gray[500],
@@ -245,53 +253,82 @@ const styles = StyleSheet.create({
   inactiveBadge: {
     backgroundColor: Colors.gray[300],
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.pill,
   },
   inactiveBadgeText: {
     fontSize: FontSizes.xs,
     fontWeight: '600',
     color: Colors.gray[700],
   },
-  goalMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    flexWrap: 'wrap',
-  },
-  goalValue: {
-    fontSize: FontSizes.lg,
-    fontWeight: '700',
-    color: Colors.green[700],
-  },
-  goalCategory: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[500],
-  },
-  actions: {
-    position: 'absolute',
-    right: 0,
-    top: Spacing.md,
-    flexDirection: 'row',
+  goalBody: {
+    padding: Spacing.md,
     gap: Spacing.xs,
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.gray[100],
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metaLabel: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[700],
+    fontWeight: '500',
+  },
+  metaValue: {
+    fontSize: FontSizes.lg,
+    fontWeight: '700',
+    color: Colors.green[600],
+  },
+  categoriaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  categoriaIcon: {
+    fontSize: 16,
+  },
+  categoriaText: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[700],
+  },
+  goalFooter: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: Colors.gray[100],
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
+    borderRightWidth: 1,
+    borderRightColor: Colors.gray[100],
+  },
+  editButtonIcon: {
+    fontSize: 16,
+  },
+  editButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.gray[900],
   },
   deleteButton: {
-    backgroundColor: Colors.red[100],
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.md,
+    gap: Spacing.xs,
   },
-  actionIcon: {
-    fontSize: FontSizes.lg,
+  deleteButtonIcon: {
+    fontSize: 16,
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.gray[100],
-    marginTop: Spacing.md,
+  deleteButtonText: {
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+    color: Colors.red[600],
   },
 });
