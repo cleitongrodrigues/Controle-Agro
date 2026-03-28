@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { Goal } from '../types';
 import { generateId } from '../utils/helpers';
@@ -90,14 +90,9 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
-      >
-        <View style={styles.backdrop} onTouchEnd={handleClose} />
+      <View style={styles.backdrop}>
         <View style={styles.container}>
           <ScrollView style={styles.content}>
-            <View style={styles.handle} />
             <Text style={styles.title}>
               {goal ? 'Editar Meta' : 'Nova Meta'}
             </Text>
@@ -198,41 +193,29 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
             </View>
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
   backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.md,
   },
   container: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: BorderRadius.lg,
-    borderTopRightRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.lg,
+    width: '100%',
+    maxWidth: 500,
     maxHeight: '90%',
     ...Shadows.lg,
   },
   content: {
     padding: Spacing.xl,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: Colors.gray[300],
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: Spacing.lg,
   },
   title: {
     fontSize: FontSizes.xxl,

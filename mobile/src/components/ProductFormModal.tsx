@@ -195,12 +195,15 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.md,
   },
   container: {
     backgroundColor: Colors.white,
-    borderTopLeftRadius: BorderRadius.lg,
-    borderTopRightRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.lg,
+    width: '100%',
+    maxWidth: 500,
     maxHeight: '90%',
     ...Shadows.lg,
   },
