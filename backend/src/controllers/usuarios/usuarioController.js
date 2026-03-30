@@ -1,7 +1,7 @@
 const db = require('../../database/connection.js');
 
 module.exports = {
-    async obterTodos(req, res) {
+    async ListarTodos(req, res) {
         try {
             const sql = 'SELECT * FROM usuarios';
             const result = await db.query(sql);
@@ -48,10 +48,11 @@ module.exports = {
         }
     },
 
-    async criar(req, res) {
+    async criarUsuario(req, res) {
         try {
             const { nome, email, senha, telefone, cargo, nivel } = req.body;
-            const sql = 'INSERT INTO usuarios (nome, email, senha, telefone, cargo, nivel) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+            const sql = `INSERT INTO usuarios (nome, email, senha, telefone, cargo, nivel) 
+                         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
             const result = await db.query(sql, [nome, email, senha, telefone, cargo, nivel || 'vendedor']);
 
             return res.status(201).json({
@@ -68,7 +69,7 @@ module.exports = {
         }
     },
 
-    async atualizar(req, res) {
+    async atualizarUsuario(req, res) {
         try {
             const { id } = req.params;
             const { nome, email, senha, telefone, cargo, nivel } = req.body;
@@ -96,7 +97,7 @@ module.exports = {
         }
     },
 
-    async remover(req, res) {
+    async removerUsuario(req, res) {
         try {
             const { id } = req.params;
             const sql = 'DELETE FROM usuarios WHERE id = $1';
