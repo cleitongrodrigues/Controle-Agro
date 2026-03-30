@@ -26,10 +26,10 @@ CREATE TYPE nivel_usuario AS ENUM ('admin', 'supervisor', 'vendedor');
 
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL,
-    telefone VARCHAR(20),
+    nome VARCHAR(80) NOT NULL,
+    email VARCHAR(80) NOT NULL UNIQUE,
+    senha VARCHAR(20) NOT NULL,
+    telefone VARCHAR(14),
     cargo VARCHAR(100),
     nivel nivel_usuario NOT NULL DEFAULT 'vendedor',
     ativo BOOLEAN DEFAULT true,
@@ -48,11 +48,11 @@ CREATE INDEX idx_usuarios_nivel ON usuarios(nivel);
 
 CREATE TABLE fazendas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome VARCHAR(255) NOT NULL,
-    proprietario VARCHAR(255) NOT NULL,
+    nome VARCHAR(80) NOT NULL,
+    proprietario VARCHAR(80) NOT NULL,
     hectares DECIMAL(10, 2) NOT NULL CHECK (hectares >= 0),
     localizacao TEXT NOT NULL,
-    telefone VARCHAR(20),
+    telefone VARCHAR(14),
     status status_fazenda NOT NULL DEFAULT 'pendente',
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
@@ -71,7 +71,7 @@ CREATE INDEX idx_fazendas_localizacao ON fazendas USING gin(to_tsvector('portugu
 
 CREATE TABLE produtos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome VARCHAR(255) NOT NULL UNIQUE,
+    nome VARCHAR(80) NOT NULL UNIQUE,
     preco DECIMAL(10, 2) NOT NULL CHECK (preco >= 0),
     categoria categoria_produto NOT NULL,
     ativo BOOLEAN DEFAULT true,
@@ -91,8 +91,8 @@ CREATE INDEX idx_produtos_ativo ON produtos(ativo);
 CREATE TABLE vendas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     fazenda_id UUID NOT NULL REFERENCES fazendas(id) ON DELETE CASCADE,
-    fazenda_nome VARCHAR(255) NOT NULL,
-    produto VARCHAR(255) NOT NULL,
+    fazenda_nome VARCHAR(80) NOT NULL,
+    produto VARCHAR(80) NOT NULL,
     quantidade DECIMAL(10, 3) NOT NULL CHECK (quantidade > 0),
     valor_unitario DECIMAL(10, 2) NOT NULL CHECK (valor_unitario >= 0),
     valor_total DECIMAL(10, 2) NOT NULL CHECK (valor_total >= 0),
@@ -119,9 +119,9 @@ CREATE INDEX idx_vendas_produto ON vendas(produto);
 
 CREATE TABLE metas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nome VARCHAR(255) NOT NULL,
+    nome VARCHAR(80) NOT NULL,
     valor_meta DECIMAL(10, 2) NOT NULL CHECK (valor_meta > 0),
-    categoria VARCHAR(100),
+    categoria VARCHAR(80),
     ativo BOOLEAN DEFAULT true,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -138,7 +138,7 @@ CREATE INDEX idx_metas_categoria ON metas(categoria);
 CREATE TABLE clientes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     iniciais VARCHAR(10) NOT NULL,
-    nome VARCHAR(255) NOT NULL,
+    nome VARCHAR(80) NOT NULL,
     detalhe TEXT,
     status status_cliente NOT NULL DEFAULT 'ativo',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -157,7 +157,7 @@ CREATE TABLE historico_vendas_fazenda (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     fazenda_id UUID NOT NULL REFERENCES fazendas(id) ON DELETE CASCADE,
     data DATE NOT NULL,
-    produto VARCHAR(255) NOT NULL,
+    produto VARCHAR(80) NOT NULL,
     valor VARCHAR(50) NOT NULL,
     nota TEXT,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
