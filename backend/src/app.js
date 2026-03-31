@@ -5,6 +5,7 @@ const produtoRoutes = require("./routes/produtos/produtoRoutes");
 const vendaRoutes = require("./routes/venda/vendaRoutes");
 const metasRoutes = require("./routes/metas/metaRoutes");
 const clienteRoutes = require("./routes/clientes/clienteRoutes");
+const historicoRoutes = require("./routes/historico_venda/historicoRoutes");
 
 const app = express();
 
@@ -17,5 +18,6 @@ app.use("/produtos", produtoRoutes);
 app.use("/vendas", vendaRoutes);
 app.use("/metas", metasRoutes);
 app.use("/clientes", clienteRoutes);
+app.use("/historico_venda", historicoRoutes);
 
 module.exports = app;
