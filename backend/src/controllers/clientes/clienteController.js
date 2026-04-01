@@ -1,5 +1,4 @@
 const db = require('../../database/connection.js');
-const { buscarPorId } = require('../metas/metasController');
 
 module.exports = {
     async listarTodos(req, res){
@@ -28,7 +27,7 @@ module.exports = {
             const sql = 'SELECT * FROM clientes WHERE id = $1';
             const result = await db.query(sql, [id]);
 
-            if (result.rowCount.length === 0){
+            if (result.rows.length === 0){
                 return res.status(404).json({
                     sucesso: false,
                     mensagem: 'Cliente não encontrado'
@@ -54,7 +53,7 @@ module.exports = {
             const { iniciais, nome, detalhe, status, criado_em, atualizado_em } = req.body;
             const sql = `INSERT INTO clientes (iniciais, nome, detalhe, status, criado_em, atualizado_em)
                          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-            const result = await db.query(sql, [iniciais, nome, detalhe, status || true, criado_em || new Date(), atualizado_em || new Date()]);
+            const result = await db.query(sql, [iniciais, nome, detalhe, status || 'ativo', criado_em || new Date(), atualizado_em || new Date()]);
 
             return res.status(201).json({
                 sucesso: true,

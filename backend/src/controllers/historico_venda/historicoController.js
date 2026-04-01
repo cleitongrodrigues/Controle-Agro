@@ -3,7 +3,7 @@ const db = require('../../database/connection.js');
 module.exports = {
     async listarHistorico(req, res){
         try {
-            const sql = 'SELECT * FROM historico_venda';
+            const sql = 'SELECT * FROM historico_vendas_fazenda';
             const result = await db.query(sql);
             
             return res.status(200).json({

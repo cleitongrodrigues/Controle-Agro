@@ -53,7 +53,7 @@ module.exports = {
             const { nome, valor_meta, categoria, ativo, criado_em, atualizado_em } = req.body;
             const sql = `INSERT INTO metas (nome, valor_meta, categoria, ativo, criado_em, atualizado_em)
                          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-            const result = await db.query(sql, [nome, valor_meta, categoria, ativo || true, criado_em || new Date(), atualizado_em || new Date()]);
+            const result = await db.query(sql, [nome, valor_meta, categoria, ativo !== undefined ? ativo : true, criado_em || new Date(), atualizado_em || new Date()]);
 
             return res.status(201).json({
                 sucesso: true,

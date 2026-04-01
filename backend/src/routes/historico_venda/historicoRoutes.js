@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const clienteController = require('../../controllers/clientes/clienteController.js');
+const historicoController = require('../../controllers/historico_venda/historicoController.js');
 
-router.get('/', clienteController.listarTodos);
+router.get('/', historicoController.listarHistorico);
 
 module.exports = router;

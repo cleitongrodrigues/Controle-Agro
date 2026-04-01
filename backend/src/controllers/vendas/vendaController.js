@@ -1,5 +1,4 @@
 const db = require('../../database/connection.js');
-const { buscarPorId } = require('../usuarios/usuarioController');
 
 module.exports = {
     async ListarTodos(req, res){
@@ -41,7 +40,7 @@ module.exports = {
                 dados: result.rows[0]
             });
         } catch (error) {
-            return res.staus(500).json({
+            return res.status(500).json({
                 sucesso: false,
                 mensagem: 'Erro ao buscar venda',
                 dados: error.message
