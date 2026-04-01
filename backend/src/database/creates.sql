@@ -14,9 +14,6 @@ CREATE TYPE categoria_produto AS ENUM ('herbicida', 'semente', 'fertilizante', '
 -- Tipo de desconto
 CREATE TYPE tipo_desconto AS ENUM ('percentual', 'valor');
 
--- Status de clientes
-CREATE TYPE status_cliente AS ENUM ('ativo', 'sem-compra', 'pendente');
-
 -- Nível de acesso de usuários
 CREATE TYPE nivel_usuario AS ENUM ('admin', 'supervisor', 'vendedor');
 
@@ -85,6 +82,26 @@ CREATE INDEX idx_produtos_categoria ON produtos(categoria);
 CREATE INDEX idx_produtos_ativo ON produtos(ativo);
 
 -- =====================================================
+-- TABELA: responsaveis
+-- =====================================================
+
+CREATE TABLE responsaveis (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    fazenda_id UUID NOT NULL REFERENCES fazendas(id) ON DELETE CASCADE,
+    nome VARCHAR(80) NOT NULL,
+    telefone VARCHAR(14),
+    cargo VARCHAR(100),
+    principal BOOLEAN DEFAULT false,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Índices
+CREATE INDEX idx_responsaveis_fazenda_id ON responsaveis(fazenda_id);
+CREATE INDEX idx_responsaveis_nome ON responsaveis(nome);
+CREATE INDEX idx_responsaveis_principal ON responsaveis(principal);
+
+-- =====================================================
 -- TABELA: vendas
 -- =====================================================
 
@@ -100,6 +117,7 @@ CREATE TABLE vendas (
     desconto_tipo tipo_desconto,
     valor_com_desconto DECIMAL(10, 2) CHECK (valor_com_desconto >= 0),
     categoria categoria_produto,
+    responsavel_id UUID REFERENCES responsaveis(id) ON DELETE SET NULL,
     data DATE NOT NULL,
     sincronizado BOOLEAN DEFAULT false,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -112,6 +130,7 @@ CREATE INDEX idx_vendas_data ON vendas(data DESC);
 CREATE INDEX idx_vendas_sincronizado ON vendas(sincronizado);
 CREATE INDEX idx_vendas_categoria ON vendas(categoria);
 CREATE INDEX idx_vendas_produto ON vendas(produto);
+CREATE INDEX idx_vendas_responsavel_id ON vendas(responsavel_id);
 
 -- =====================================================
 -- TABELA: metas
@@ -130,24 +149,6 @@ CREATE TABLE metas (
 -- Índices
 CREATE INDEX idx_metas_ativo ON metas(ativo);
 CREATE INDEX idx_metas_categoria ON metas(categoria);
-
--- =====================================================
--- TABELA: clientes
--- =====================================================
-
-CREATE TABLE clientes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    iniciais VARCHAR(10) NOT NULL,
-    nome VARCHAR(80) NOT NULL,
-    detalhe TEXT,
-    status status_cliente NOT NULL DEFAULT 'ativo',
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Índices
-CREATE INDEX idx_clientes_nome ON clientes(nome);
-CREATE INDEX idx_clientes_status ON clientes(status);
 
 -- =====================================================
 -- TABELA: historico_vendas_fazenda
