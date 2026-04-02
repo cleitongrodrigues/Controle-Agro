@@ -63,6 +63,9 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isLoading, segments]);
 
+  // Enquanto verifica a sessão, não renderiza nada (evita flash de tela errada)
+  if (isLoading) return null;
+
   return <>{children}</>;
 }
 

@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const usuarioRoutes = require("./routes/usuarios/usuarioRoutes");
 const fazendaRoutes = require("./routes/fazendas/fazendaRoutes");
 const produtoRoutes = require("./routes/produtos/produtoRoutes");
@@ -11,6 +12,7 @@ const authMiddleware = require("./middlewares/authMiddleware");
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 // Rota pública

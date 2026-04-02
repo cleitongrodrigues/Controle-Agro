@@ -4,6 +4,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storageService } from '../services/storage';
+import { api } from '../services/api';
 
 const AUTH_KEY = '@agrovendas:auth';
 
@@ -38,42 +39,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   async function carregarSessao() {
     try {
       const sessao = await storageService.getItem<{ usuario: AuthUsuario; token: string }>(AUTH_KEY);
-      if (sessao) {
-        setUsuario(sessao.usuario);
+      if (sessao?.token) {
+        // Valida o token no servidor antes de aceitar a sessão
+        const data = await api.get<{ usuario: AuthUsuario }>('/auth/me');
+        setUsuario(data.usuario);
         setToken(sessao.token);
       }
     } catch {
-      // sessão inválida, ignora
+      // Token inválido ou expirado — limpa a sessão
+      await storageService.removeItem(AUTH_KEY);
     } finally {
       setIsLoading(false);
     }
   }
 
   async function login(email: string, senha: string) {
-    // TODO: substituir pela chamada real ao backend
-    // const response = await fetch(`${API_URL}/auth/login`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, senha }),
-    // });
-    // if (!response.ok) throw new Error('Credenciais inválidas');
-    // const { token, usuario } = await response.json();
-
-    // Stub temporário até o backend de auth estar pronto
     if (!email || !senha) throw new Error('Preencha todos os campos');
 
-    const usuarioMock: AuthUsuario = {
-      id: '1',
-      nome: 'Cleiton',
-      email,
-      nivel: 'admin',
-      cargo: 'Administrador',
-    };
-    const tokenMock = 'token-temporario';
+    const data = await api.post<{ token: string; usuario: AuthUsuario }>(
+      '/auth/login',
+      { email, senha },
+      false
+    );
 
-    await storageService.setItem(AUTH_KEY, { usuario: usuarioMock, token: tokenMock });
-    setUsuario(usuarioMock);
-    setToken(tokenMock);
+    await storageService.setItem(AUTH_KEY, { usuario: data.usuario, token: data.token });
+    setUsuario(data.usuario);
+    setToken(data.token);
   }
 
   async function logout() {

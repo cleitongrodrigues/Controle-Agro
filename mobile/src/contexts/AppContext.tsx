@@ -1,11 +1,80 @@
-// ══════════════════════════════════════════════════════════
+// ----------------------------------------------------------
 // APP CONTEXT - GERENCIAMENTO DE ESTADO
-// ══════════════════════════════════════════════════════════
+// ----------------------------------------------------------
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Sale, Farm, Product, Goal, Usuario } from '../types';
-import { storageService } from '../services/storage';
-import { FARMS, PRODUCTS } from '../config/data';
+import { api } from '../services/api';
+
+// -- Mappers snake_case ? camelCase ---------------------
+
+function farmFromApi(r: any): Farm {
+  return {
+    id: r.id,
+    nome: r.nome,
+    proprietario: r.proprietario,
+    hectares: Number(r.hectares),
+    localizacao: r.localizacao,
+    telefone: r.telefone,
+    status: r.status,
+    latitude: r.latitude != null ? Number(r.latitude) : undefined,
+    longitude: r.longitude != null ? Number(r.longitude) : undefined,
+  };
+}
+
+function saleFromApi(r: any): Sale {
+  return {
+    id: r.id,
+    fazendaId: r.fazenda_id,
+    fazendaNome: r.fazenda_nome,
+    produto: r.produto,
+    quantidade: Number(r.quantidade),
+    valorUnitario: Number(r.valor_unitario),
+    valorTotal: Number(r.valor_total),
+    desconto: r.desconto != null ? Number(r.desconto) : undefined,
+    descontoTipo: r.desconto_tipo,
+    valorComDesconto: r.valor_com_desconto != null ? Number(r.valor_com_desconto) : undefined,
+    data: r.data,
+    sincronizado: r.sincronizado ?? true,
+  };
+}
+
+function saleToApi(s: Omit<Sale, 'id' | 'sincronizado'> & Partial<Pick<Sale, 'id' | 'sincronizado'>>) {
+  return {
+    fazenda_id: s.fazendaId,
+    fazenda_nome: s.fazendaNome,
+    produto: s.produto,
+    quantidade: s.quantidade,
+    valor_unitario: s.valorUnitario,
+    valor_total: s.valorTotal,
+    desconto: s.desconto,
+    desconto_tipo: s.descontoTipo,
+    valor_com_desconto: s.valorComDesconto,
+    data: s.data,
+    sincronizado: s.sincronizado ?? true,
+  };
+}
+
+function goalFromApi(r: any): Goal {
+  return {
+    id: r.id,
+    nome: r.nome,
+    valorMeta: Number(r.valor_meta),
+    categoria: r.categoria,
+    ativo: r.ativo,
+  };
+}
+
+function goalToApi(g: Omit<Goal, 'id'>) {
+  return {
+    nome: g.nome,
+    valor_meta: g.valorMeta,
+    categoria: g.categoria,
+    ativo: g.ativo,
+  };
+}
+
+// -- Interface do contexto -------------------------------
 
 interface AppContextData {
   sales: Sale[];
@@ -13,343 +82,156 @@ interface AppContextData {
   products: Product[];
   goals: Goal[];
   usuarios: Usuario[];
-  addSale: (sale: Sale) => Promise<void>;
+  addSale: (sale: Omit<Sale, 'id' | 'sincronizado'>) => Promise<void>;
   updateSale: (id: string, sale: Sale) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
-  addFarm: (farm: Farm) => Promise<void>;
+  addFarm: (farm: Omit<Farm, 'id'>) => Promise<void>;
   updateFarm: (id: string, farm: Farm) => Promise<void>;
   deleteFarm: (id: string) => Promise<void>;
-  addProduct: (product: Product) => Promise<void>;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (id: string, product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
-  addGoal: (goal: Goal) => Promise<void>;
+  addGoal: (goal: Omit<Goal, 'id'>) => Promise<void>;
   updateGoal: (id: string, goal: Goal) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
-  addUsuario: (usuario: Usuario) => Promise<void>;
-  updateUsuario: (id: string, usuario: Usuario) => Promise<void>;
+  addUsuario: (usuario: Omit<Usuario, 'id'> & { senha: string }) => Promise<void>;
+  updateUsuario: (id: string, usuario: Partial<Usuario> & { senha?: string }) => Promise<void>;
   deleteUsuario: (id: string) => Promise<void>;
-  unsyncedCount: number;
-  syncData: () => Promise<void>;
   loading: boolean;
-  isOffline: boolean;
+  recarregar: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextData>({} as AppContextData);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [sales, setSales] = useState<Sale[]>([]);
-  const [farms, setFarms] = useState<Farm[]>(FARMS);
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [unsyncedCount, setUnsyncedCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(false);
 
-  // Carregar dados ao iniciar
   useEffect(() => {
-    loadInitialData();
-    // Simular detecção de rede (em produção, use NetInfo do Expo)
-    checkNetworkStatus();
+    recarregar();
   }, []);
 
-  const checkNetworkStatus = () => {
-    // Placeholder - em produção use: NetInfo.addEventListener()
-    // Por enquanto, detecta se há vendas não sincronizadas
-    setIsOffline(unsyncedCount > 0);
-  };
-
-  const loadInitialData = async () => {
+  async function recarregar() {
     try {
       setLoading(true);
-      const savedSales = await storageService.getSales();
-      const savedFarms = await storageService.getFarms();
-      const savedProducts = await storageService.getProducts();
-      const savedGoals = await storageService.getGoals();
-      const savedUsuarios = await storageService.getUsuarios();
-      const savedCount = await storageService.getUnsyncedCount();
-      
-      if (savedSales) {
-        setSales(savedSales);
-      }
-      if (savedFarms && savedFarms.length > 0) {
-        setFarms(savedFarms);
-      }
-      if (savedProducts && savedProducts.length > 0) {
-        setProducts(savedProducts);
-      }
-      if (savedGoals && savedGoals.length > 0) {
-        setGoals(savedGoals);
-      }
-      if (savedUsuarios && savedUsuarios.length > 0) {
-        setUsuarios(savedUsuarios);
-      }
-      setUnsyncedCount(savedCount);
+      const [resVendas, resFazendas, resProdutos, resMetas, resUsuarios] = await Promise.all([
+        api.get<{ dados: any[] }>('/vendas'),
+        api.get<{ dados: any[] }>('/fazendas'),
+        api.get<{ dados: any[] }>('/produtos'),
+        api.get<{ dados: any[] }>('/metas'),
+        api.get<{ dados: any[] }>('/usuarios'),
+      ]);
+      setSales(resVendas.dados.map(saleFromApi));
+      setFarms(resFazendas.dados.map(farmFromApi));
+      setProducts(resProdutos.dados);
+      setGoals(resMetas.dados.map(goalFromApi));
+      setUsuarios(resUsuarios.dados);
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
     }
+  }
+
+  // -- Vendas ---------------------------------------------
+
+  const addSale = async (sale: Omit<Sale, 'id' | 'sincronizado'>) => {
+    const res = await api.post<{ dados: any }>('/vendas', saleToApi(sale));
+    setSales(prev => [saleFromApi(res.dados), ...prev]);
   };
 
-  const addSale = async (sale: Sale) => {
-    try {
-      const newSales = [sale, ...sales];
-      setSales(newSales);
-      
-      // Salvar no storage
-      await storageService.saveSales(newSales);
-      
-      // Incrementar contador de não sincronizados
-      const newCount = unsyncedCount + 1;
-      setUnsyncedCount(newCount);
-      await storageService.saveUnsyncedCount(newCount);
-      setIsOffline(true);
-    } catch (error) {
-      console.error('Error adding sale:', error);
-      throw error;
-    }
-  };
-
-  const updateSale = async (id: string, updatedSale: Sale) => {
-    try {
-      const newSales = sales.map(sale => 
-        sale.id === id ? { ...updatedSale, sincronizado: false } : sale
-      );
-      setSales(newSales);
-      await storageService.saveSales(newSales);
-      
-      // Incrementar unsynced se a venda estava sincronizada
-      const oldSale = sales.find(s => s.id === id);
-      if (oldSale?.sincronizado) {
-        const newCount = unsyncedCount + 1;
-        setUnsyncedCount(newCount);
-        await storageService.saveUnsyncedCount(newCount);
-      }
-    } catch (error) {
-      console.error('Error updating sale:', error);
-      throw error;
-    }
+  const updateSale = async (id: string, sale: Sale) => {
+    const res = await api.put<{ dados: any }>(`/vendas/${id}`, saleToApi(sale));
+    setSales(prev => prev.map(s => s.id === id ? saleFromApi(res.dados) : s));
   };
 
   const deleteSale = async (id: string) => {
-    try {
-      const saleToDelete = sales.find(s => s.id === id);
-      const newSales = sales.filter(sale => sale.id !== id);
-      setSales(newSales);
-      await storageService.saveSales(newSales);
-      
-      // Decrementar unsynced se a venda não estava sincronizada
-      if (saleToDelete && !saleToDelete.sincronizado) {
-        const newCount = Math.max(0, unsyncedCount - 1);
-        setUnsyncedCount(newCount);
-        await storageService.saveUnsyncedCount(newCount);
-        setIsOffline(newCount > 0);
-      }
-    } catch (error) {
-      console.error('Error deleting sale:', error);
-      throw error;
-    }
+    await api.delete(`/vendas/${id}`);
+    setSales(prev => prev.filter(s => s.id !== id));
   };
 
-  const syncData = async () => {
-    try {
-      // Simula sincronização - aqui você faria a chamada para API
-      const syncedSales = sales.map(sale => ({ ...sale, sincronizado: true }));
-      setSales(syncedSales);
-      await storageService.saveSales(syncedSales);
-      
-      setUnsyncedCount(0);
-      await storageService.saveUnsyncedCount(0);
-      setIsOffline(false);
-    } catch (error) {
-      console.error('Error syncing data:', error);
-      throw error;
-    }
+  // -- Fazendas -------------------------------------------
+
+  const addFarm = async (farm: Omit<Farm, 'id'>) => {
+    const res = await api.post<{ dados: any }>('/fazendas', farm);
+    setFarms(prev => [farmFromApi(res.dados), ...prev]);
   };
 
-  // ============================================
-  // GERENCIAMENTO DE FAZENDAS
-  // ============================================
-
-  const addFarm = async (farm: Farm) => {
-    try {
-      const newFarms = [farm, ...farms];
-      setFarms(newFarms);
-      await storageService.saveFarms(newFarms);
-    } catch (error) {
-      console.error('Error adding farm:', error);
-      throw error;
-    }
-  };
-
-  const updateFarm = async (id: string, updatedFarm: Farm) => {
-    try {
-      const newFarms = farms.map(farm => 
-        farm.id === id ? updatedFarm : farm
-      );
-      setFarms(newFarms);
-      await storageService.saveFarms(newFarms);
-    } catch (error) {
-      console.error('Error updating farm:', error);
-      throw error;
-    }
+  const updateFarm = async (id: string, farm: Farm) => {
+    const res = await api.put<{ dados: any }>(`/fazendas/${id}`, farm);
+    setFarms(prev => prev.map(f => f.id === id ? farmFromApi(res.dados) : f));
   };
 
   const deleteFarm = async (id: string) => {
-    try {
-      const newFarms = farms.filter(farm => farm.id !== id);
-      setFarms(newFarms);
-      await storageService.saveFarms(newFarms);
-    } catch (error) {
-      console.error('Error deleting farm:', error);
-      throw error;
-    }
+    await api.delete(`/fazendas/${id}`);
+    setFarms(prev => prev.filter(f => f.id !== id));
   };
 
-  // ============================================
-  // GERENCIAMENTO DE PRODUTOS
-  // ============================================
+  // -- Produtos -------------------------------------------
 
-  const addProduct = async (product: Product) => {
-    try {
-      const newProducts = [product, ...products];
-      setProducts(newProducts);
-      await storageService.saveProducts(newProducts);
-    } catch (error) {
-      console.error('Error adding product:', error);
-      throw error;
-    }
+  const addProduct = async (product: Omit<Product, 'id'>) => {
+    const res = await api.post<{ dados: any }>('/produtos', product);
+    setProducts(prev => [res.dados, ...prev]);
   };
 
-  const updateProduct = async (id: string, updatedProduct: Product) => {
-    try {
-      const newProducts = products.map(product => 
-        product.id === id ? updatedProduct : product
-      );
-      setProducts(newProducts);
-      await storageService.saveProducts(newProducts);
-    } catch (error) {
-      console.error('Error updating product:', error);
-      throw error;
-    }
+  const updateProduct = async (id: string, product: Product) => {
+    const res = await api.put<{ dados: any }>(`/produtos/${id}`, product);
+    setProducts(prev => prev.map(p => p.id === id ? res.dados : p));
   };
 
   const deleteProduct = async (id: string) => {
-    try {
-      const newProducts = products.filter(product => product.id !== id);
-      setProducts(newProducts);
-      await storageService.saveProducts(newProducts);
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      throw error;
-    }
+    await api.delete(`/produtos/${id}`);
+    setProducts(prev => prev.filter(p => p.id !== id));
   };
 
-  // ============================================
-  // GERENCIAMENTO DE METAS
-  // ============================================
+  // -- Metas ----------------------------------------------
 
-  const addGoal = async (goal: Goal) => {
-    try {
-      const newGoals = [goal, ...goals];
-      setGoals(newGoals);
-      await storageService.saveGoals(newGoals);
-    } catch (error) {
-      console.error('Error adding goal:', error);
-      throw error;
-    }
+  const addGoal = async (goal: Omit<Goal, 'id'>) => {
+    const res = await api.post<{ dados: any }>('/metas', goalToApi(goal));
+    setGoals(prev => [goalFromApi(res.dados), ...prev]);
   };
 
-  const updateGoal = async (id: string, updatedGoal: Goal) => {
-    try {
-      const newGoals = goals.map(goal => 
-        goal.id === id ? updatedGoal : goal
-      );
-      setGoals(newGoals);
-      await storageService.saveGoals(newGoals);
-    } catch (error) {
-      console.error('Error updating goal:', error);
-      throw error;
-    }
+  const updateGoal = async (id: string, goal: Goal) => {
+    const res = await api.put<{ dados: any }>(`/metas/${id}`, goalToApi(goal));
+    setGoals(prev => prev.map(g => g.id === id ? goalFromApi(res.dados) : g));
   };
 
   const deleteGoal = async (id: string) => {
-    try {
-      const newGoals = goals.filter(goal => goal.id !== id);
-      setGoals(newGoals);
-      await storageService.saveGoals(newGoals);
-    } catch (error) {
-      console.error('Error deleting goal:', error);
-      throw error;
-    }
+    await api.delete(`/metas/${id}`);
+    setGoals(prev => prev.filter(g => g.id !== id));
   };
 
-  // ============================================
-  // GERENCIAMENTO DE USUÁRIOS
-  // ============================================
+  // -- Usu�rios -------------------------------------------
 
-  const addUsuario = async (usuario: Usuario) => {
-    try {
-      const newUsuarios = [usuario, ...usuarios];
-      setUsuarios(newUsuarios);
-      await storageService.saveUsuarios(newUsuarios);
-    } catch (error) {
-      console.error('Error adding usuario:', error);
-      throw error;
-    }
+  const addUsuario = async (usuario: Omit<Usuario, 'id'> & { senha: string }) => {
+    const res = await api.post<{ dados: any }>('/usuarios', usuario);
+    setUsuarios(prev => [res.dados, ...prev]);
   };
 
-  const updateUsuario = async (id: string, updatedUsuario: Usuario) => {
-    try {
-      const newUsuarios = usuarios.map(usuario => 
-        usuario.id === id ? updatedUsuario : usuario
-      );
-      setUsuarios(newUsuarios);
-      await storageService.saveUsuarios(newUsuarios);
-    } catch (error) {
-      console.error('Error updating usuario:', error);
-      throw error;
-    }
+  const updateUsuario = async (id: string, usuario: Partial<Usuario> & { senha?: string }) => {
+    const res = await api.put<{ dados: any }>(`/usuarios/${id}`, usuario);
+    setUsuarios(prev => prev.map(u => u.id === id ? res.dados : u));
   };
 
   const deleteUsuario = async (id: string) => {
-    try {
-      const newUsuarios = usuarios.filter(usuario => usuario.id !== id);
-      setUsuarios(newUsuarios);
-      await storageService.saveUsuarios(newUsuarios);
-    } catch (error) {
-      console.error('Error deleting usuario:', error);
-      throw error;
-    }
+    await api.delete(`/usuarios/${id}`);
+    setUsuarios(prev => prev.filter(u => u.id !== id));
   };
 
   return (
-    <AppContext.Provider value={{ 
-      sales,
-      farms,
-      products,
-      goals,
-      addSale, 
-      updateSale,
-      deleteSale,
-      addFarm,
-      updateFarm,
-      deleteFarm,
-      addProduct,
-      updateProduct,
-      deleteProduct,
-      addGoal,
-      updateGoal,
-      deleteGoal,
-      usuarios,
-      addUsuario,
-      updateUsuario,
-      deleteUsuario,
-      unsyncedCount, 
-      syncData, 
+    <AppContext.Provider value={{
+      sales, farms, products, goals, usuarios,
+      addSale, updateSale, deleteSale,
+      addFarm, updateFarm, deleteFarm,
+      addProduct, updateProduct, deleteProduct,
+      addGoal, updateGoal, deleteGoal,
+      addUsuario, updateUsuario, deleteUsuario,
       loading,
-      isOffline,
+      recarregar,
     }}>
       {children}
     </AppContext.Provider>
