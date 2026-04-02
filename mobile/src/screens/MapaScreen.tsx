@@ -7,13 +7,12 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { AppHeader, MetricCard, FarmItem, FarmHistoryModal, SearchBar } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
-import { FARM_HISTORY } from '../config/data';
-import { Metric, Farm } from '../types';
+import { Metric, Farm, FarmStatus } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { useToast } from '../contexts/ToastContext';
 
 export const MapaScreen: React.FC = () => {
-  const { farms = [] } = useApp();
+  const { farms = [], sales = [], updateFarm } = useApp();
   const { showToast } = useToast();
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -48,6 +47,18 @@ export const MapaScreen: React.FC = () => {
   const handleFarmPress = (farm: Farm) => {
     setSelectedFarm(farm);
     setModalVisible(true);
+  };
+
+  const handleStatusChange = async (farmId: string, newStatus: FarmStatus) => {
+    const farm = farms.find(f => f.id === farmId);
+    if (!farm) return;
+    try {
+      await updateFarm(farmId, { ...farm, status: newStatus });
+      setSelectedFarm(prev => prev ? { ...prev, status: newStatus } : prev);
+      showToast(`Status atualizado para "${newStatus}"`, 'success');
+    } catch {
+      showToast('Erro ao atualizar status', 'error');
+    }
   };
 
   // Filtrar fazendas por busca
@@ -164,7 +175,8 @@ export const MapaScreen: React.FC = () => {
         visible={modalVisible}
         onClose={handleCloseModal}
         farm={selectedFarm}
-        history={selectedFarm ? (FARM_HISTORY[selectedFarm.id] || []) : []}
+        sales={sales}
+        onStatusChange={handleStatusChange}
       />
     </View>
   );
