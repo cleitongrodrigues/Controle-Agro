@@ -41,8 +41,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const sessao = await storageService.getItem<{ usuario: AuthUsuario; token: string }>(AUTH_KEY);
       if (sessao?.token) {
         // Valida o token no servidor antes de aceitar a sessão
-        const data = await api.get<{ usuario: AuthUsuario }>('/auth/me');
-        setUsuario(data.usuario);
+        const data = await api.get<{ dados: AuthUsuario }>('/auth/me');
+        setUsuario(data.dados);
         setToken(sessao.token);
       }
     } catch {

@@ -3,38 +3,59 @@
 // ══════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { AppHeader } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 
 interface SettingsScreenProps {
   visible: boolean;
   onClose: () => void;
 }
 
+const NIVEL_LABEL: Record<string, string> = {
+  admin: 'Administrador',
+  supervisor: 'Supervisor',
+  vendedor: 'Vendedor',
+};
+
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose }) => {
   const { showToast } = useToast();
-  
-  const [vendorName, setVendorName] = useState('João Silva');
-  const [companyName, setCompanyName] = useState('AgroVendas');
-  const [hasChanges, setHasChanges] = useState(false);
+  const { usuario, logout } = useAuth();
+  const { sales, farms, products, goals, recarregar } = useApp();
+  const [syncing, setSyncing] = useState(false);
 
-  const handleSave = () => {
-    showToast('✅ Configurações salvas com sucesso!', 'success');
-    setHasChanges(false);
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await recarregar();
+      showToast('Dados sincronizados com sucesso!', 'success');
+    } catch {
+      showToast('Erro ao sincronizar dados', 'error');
+    } finally {
+      setSyncing(false);
+    }
   };
 
-  const handleReset = () => {
-    setVendorName('João Silva');
-    setCompanyName('AgroVendas');
-    setHasChanges(false);
-    showToast('Configurações restauradas', 'info');
-  };
-
-  const markChanged = () => {
-    if (!hasChanges) setHasChanges(true);
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Deseja realmente sair da conta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            onClose();
+            await logout();
+          },
+        },
+      ]
+    );
   };
 
   if (!visible) return null;
@@ -49,118 +70,85 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ visible, onClose
       
       <ScrollView style={styles.scrollContent}>
         <View style={globalStyles.section}>
-          <Text style={styles.sectionTitle}>👤 Informações do Vendedor</Text>
-          <View style={globalStyles.card}>
-            <View style={globalStyles.formGroup}>
-              <Text style={globalStyles.formLabel}>Nome completo</Text>
-              <TextInput
-                style={globalStyles.input}
-                value={vendorName}
-                onChangeText={(text) => {
-                  setVendorName(text);
-                  markChanged();
-                }}
-                placeholder="Digite seu nome"
-              />
-              <Text style={styles.helpText}>
-                Seu nome aparecerá nos relatórios e documentos
-              </Text>
-            </View>
 
-            <View style={globalStyles.formGroup}>
-              <Text style={globalStyles.formLabel}>Empresa</Text>
-              <TextInput
-                style={globalStyles.input}
-                value={companyName}
-                onChangeText={(text) => {
-                  setCompanyName(text);
-                  markChanged();
-                }}
-                placeholder="Nome da empresa"
-              />
+          {/* Conta */}
+          <Text style={styles.sectionTitle}>👤 Conta</Text>
+          <View style={globalStyles.card}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Nome</Text>
+              <Text style={styles.infoValue}>{usuario?.nome ?? '—'}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>E-mail</Text>
+              <Text style={styles.infoValue}>{usuario?.email ?? '—'}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Nível</Text>
+              <Text style={styles.infoValue}>
+                {usuario?.nivel ? NIVEL_LABEL[usuario.nivel] ?? usuario.nivel : '—'}
+              </Text>
             </View>
           </View>
 
+          {/* Dados do sistema */}
+          <Text style={styles.sectionTitle}>📊 Dados</Text>
+          <View style={globalStyles.card}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Vendas cadastradas</Text>
+              <Text style={styles.infoValue}>{sales.length}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Fazendas cadastradas</Text>
+              <Text style={styles.infoValue}>{farms.length}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Produtos cadastrados</Text>
+              <Text style={styles.infoValue}>{products.length}</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Metas cadastradas</Text>
+              <Text style={styles.infoValue}>{goals.length}</Text>
+            </View>
+          </View>
 
-          <Text style={styles.sectionTitle}>ℹ️ Sobre o Sistema</Text>
+          {/* Ações */}
+          <Text style={styles.sectionTitle}>⚙️ Ações</Text>
+          <View style={globalStyles.card}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={handleSync}
+              disabled={syncing}
+            >
+              <Text style={styles.actionIcon}>🔄</Text>
+              <View style={styles.actionContent}>
+                <Text style={styles.actionTitle}>
+                  {syncing ? 'Sincronizando...' : 'Forçar Sincronização'}
+                </Text>
+                <Text style={styles.actionSubtitle}>Recarregar todos os dados do servidor</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Sobre */}
+          <Text style={styles.sectionTitle}>ℹ️ Sobre</Text>
           <View style={globalStyles.card}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Versão do App</Text>
               <Text style={styles.infoValue}>1.0.0</Text>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Última sincronização</Text>
-              <Text style={styles.infoValue}>Hoje, 14:32</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Vendas cadastradas</Text>
-              <Text style={styles.infoValue}>12</Text>
-            </View>
           </View>
 
-          <Text style={styles.sectionTitle}>⚙️ Ações do Sistema</Text>
-          <View style={globalStyles.card}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => showToast('Sincronizando dados...', 'info')}
-            >
-              <Text style={styles.actionIcon}>🔄</Text>
-              <View style={styles.actionContent}>
-                <Text style={styles.actionTitle}>Forçar Sincronização</Text>
-                <Text style={styles.actionSubtitle}>Sincronizar dados com o servidor</Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
+          {/* Sair */}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>🚪 Sair da conta</Text>
+          </TouchableOpacity>
 
-            <View style={styles.divider} />
-
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => showToast('Cache limpo com sucesso', 'success')}
-            >
-              <Text style={styles.actionIcon}>🗑️</Text>
-              <View style={styles.actionContent}>
-                <Text style={styles.actionTitle}>Limpar Cache</Text>
-                <Text style={styles.actionSubtitle}>Liberar espaço de armazenamento</Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
-
-            <View style={styles.divider} />
-
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleReset}
-            >
-              <Text style={styles.actionIcon}>↺</Text>
-              <View style={styles.actionContent}>
-                <Text style={styles.actionTitle}>Restaurar Padrões</Text>
-                <Text style={[styles.actionSubtitle, styles.warningText]}>
-                  Resetar configurações para valores padrão
-                </Text>
-              </View>
-              <Text style={styles.chevron}>›</Text>
-            </TouchableOpacity>
-          </View>
-
-          {hasChanges && (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity 
-                style={[globalStyles.btnSecondary, { flex: 1 }]}
-                onPress={handleReset}
-              >
-                <Text style={globalStyles.btnSecondaryText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[globalStyles.btnPrimary, { flex: 2 }]}
-                onPress={handleSave}
-              >
-                <Text style={globalStyles.btnPrimaryText}>Salvar Alterações</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </ScrollView>
     </View>
@@ -240,9 +228,18 @@ const styles = StyleSheet.create({
     color: Colors.gray[300],
     fontWeight: '300',
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: Spacing.md,
+  logoutButton: {
     marginTop: Spacing.lg,
+    marginBottom: Spacing.xl,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.red[600],
+    alignItems: 'center',
+  },
+  logoutText: {
+    fontSize: FontSizes.base,
+    fontWeight: '600',
+    color: Colors.red[600],
   },
 });
