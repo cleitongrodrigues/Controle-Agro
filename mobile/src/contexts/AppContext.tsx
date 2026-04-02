@@ -83,7 +83,12 @@ function goalFromApi(r: any): Goal {
     id: r.id,
     nome: r.nome,
     valorMeta: Number(r.valor_meta),
-    categoria: r.categoria,
+    tipoFiltro: r.tipo_filtro ?? 'geral',
+    categoria: r.categoria ?? undefined,
+    produtoId: r.produto_id ?? undefined,
+    produtoNome: r.produto_nome ?? undefined,
+    dataInicio: r.data_inicio ?? undefined,
+    dataFim: r.data_fim ?? undefined,
     ativo: r.ativo,
   };
 }
@@ -92,7 +97,12 @@ function goalToApi(g: Omit<Goal, 'id'>) {
   return {
     nome: g.nome,
     valor_meta: g.valorMeta,
-    categoria: g.categoria,
+    tipo_filtro: g.tipoFiltro,
+    categoria: g.categoria ?? null,
+    produto_id: g.produtoId ?? null,
+    produto_nome: g.produtoNome ?? null,
+    data_inicio: g.dataInicio ?? null,
+    data_fim: g.dataFim ?? null,
     ativo: g.ativo,
   };
 }

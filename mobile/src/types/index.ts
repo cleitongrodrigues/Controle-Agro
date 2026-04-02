@@ -73,11 +73,18 @@ export interface Product {
   ativo?: boolean;
 }
 
+export type GoalTipoFiltro = 'geral' | 'categoria' | 'produto';
+
 export interface Goal {
   id: string;
   nome: string;
   valorMeta: number;
+  tipoFiltro: GoalTipoFiltro;
   categoria?: string;
+  produtoId?: string;
+  produtoNome?: string;
+  dataInicio?: string;
+  dataFim?: string;
   ativo: boolean;
 }
 

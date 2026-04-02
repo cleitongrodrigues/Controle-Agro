@@ -26,7 +26,7 @@ export const MetasScreen: React.FC = () => {
         const saleDate = new Date(sale.data);
         return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
       })
-      .reduce((sum, sale) => sum + sale.valorComDesconto, 0);
+      .reduce((sum, sale) => sum + (sale.valorComDesconto ?? sale.valorTotal), 0);
   }, [sales]);
 
   // Calcular vendas por categoria
@@ -44,30 +44,51 @@ export const MetasScreen: React.FC = () => {
       })
       .forEach(sale => {
         const category = sale.categoria?.toLowerCase() || 'geral';
-        categoryTotals[category] = (categoryTotals[category] || 0) + sale.valorComDesconto;
+        categoryTotals[category] = (categoryTotals[category] || 0) + (sale.valorComDesconto ?? sale.valorTotal);
       });
 
     return categoryTotals;
   }, [sales]);
+
+  // Retorna o valor atual de vendas para uma meta, respeitando filtro e período
+  const calcularValorAtual = (goal: Goal): number => {
+    const filtrarPorPeriodo = (data: string): boolean => {
+      if (!goal.dataInicio && !goal.dataFim) {
+        // Sem período definido: usa mês atual
+        const now = new Date();
+        const d = new Date(data);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }
+      if (goal.dataInicio && data < goal.dataInicio) return false;
+      if (goal.dataFim && data > goal.dataFim) return false;
+      return true;
+    };
+
+    return sales
+      .filter(sale => filtrarPorPeriodo(sale.data))
+      .filter(sale => {
+        if (goal.tipoFiltro === 'produto') return sale.produto === goal.produtoNome;
+        if (goal.tipoFiltro === 'categoria') return sale.categoria?.toLowerCase() === goal.categoria?.toLowerCase();
+        return true; // 'geral'
+      })
+      .reduce((sum, sale) => sum + (sale.valorComDesconto ?? sale.valorTotal), 0);
+  };
 
   // Mapear metas com valores calculados
   const goalsWithProgress = useMemo(() => {
     return goals
       .filter(goal => goal.ativo)
       .map(goal => {
-        const category = goal.categoria?.toLowerCase() || 'geral';
-        const valorAtual = salesByCategory[category] || 0;
+        const valorAtual = calcularValorAtual(goal);
         const porcentagem = calculateGoalPercentage(valorAtual, goal.valorMeta);
 
         return {
-          nome: goal.nome,
+          ...goal,
           valorAtual,
-          valorMeta: goal.valorMeta,
           porcentagem,
-          categoria: goal.categoria,
-        } as Goal;
+        };
       });
-  }, [goals, salesByCategory]);
+  }, [goals, sales]);
   
   const commission: Commission = {
     percentual: COMMISSION_PERCENTAGE,

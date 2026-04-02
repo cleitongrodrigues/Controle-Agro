@@ -133,10 +133,28 @@ export const GoalListScreen: React.FC<GoalListScreenProps> = ({ visible, onClose
                     <Text style={styles.metaLabel}>Meta:</Text>
                     <Text style={styles.metaValue}>{formatCurrency(goal.valorMeta)}</Text>
                   </View>
-                  {goal.categoria && (
+                  <View style={styles.categoriaRow}>
+                    <Text style={styles.categoriaIcon}>🎯</Text>
+                    <Text style={styles.categoriaText}>
+                      {goal.tipoFiltro === 'geral' && 'Todos os produtos'}
+                      {goal.tipoFiltro === 'categoria' && `Categoria: ${goal.categoria}`}
+                      {goal.tipoFiltro === 'produto' && `Produto: ${goal.produtoNome}`}
+                    </Text>
+                  </View>
+                  {(goal.dataInicio || goal.dataFim) && (
                     <View style={styles.categoriaRow}>
-                      <Text style={styles.categoriaIcon}>📁</Text>
-                      <Text style={styles.categoriaText}>{goal.categoria}</Text>
+                      <Text style={styles.categoriaIcon}>📅</Text>
+                      <Text style={styles.categoriaText}>
+                        {goal.dataInicio ? new Date(goal.dataInicio + 'T00:00:00').toLocaleDateString('pt-BR') : '?'}
+                        {' → '}
+                        {goal.dataFim ? new Date(goal.dataFim + 'T00:00:00').toLocaleDateString('pt-BR') : '?'}
+                      </Text>
+                    </View>
+                  )}
+                  {!goal.dataInicio && !goal.dataFim && (
+                    <View style={styles.categoriaRow}>
+                      <Text style={styles.categoriaIcon}>📅</Text>
+                      <Text style={styles.categoriaText}>Mês atual</Text>
                     </View>
                   )}
                 </View>

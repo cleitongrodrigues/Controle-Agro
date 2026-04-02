@@ -50,10 +50,14 @@ module.exports = {
 
     async criarMeta(req, res){
         try {
-            const { nome, valor_meta, categoria, ativo } = req.body;
-            const sql = `INSERT INTO metas (nome, valor_meta, categoria, ativo)
-                         VALUES ($1, $2, $3, $4) RETURNING *`;
-            const result = await db.query(sql, [nome, valor_meta, categoria, ativo !== undefined ? ativo : true]);
+            const { nome, valor_meta, categoria, ativo, tipo_filtro, produto_id, produto_nome, data_inicio, data_fim } = req.body;
+            const sql = `INSERT INTO metas (nome, valor_meta, categoria, ativo, tipo_filtro, produto_id, produto_nome, data_inicio, data_fim)
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+            const result = await db.query(sql, [
+                nome, valor_meta, categoria ?? null, ativo !== undefined ? ativo : true,
+                tipo_filtro ?? 'geral', produto_id ?? null, produto_nome ?? null,
+                data_inicio ?? null, data_fim ?? null
+            ]);
 
             return res.status(201).json({
                 sucesso: true,
@@ -72,9 +76,15 @@ module.exports = {
     async atualizarMeta(req, res) {
         try {
             const { id } = req.params;
-            const { nome, valor_meta, categoria, ativo } = req.body;
-            const sql = `UPDATE metas SET nome = $1, valor_meta = $2, categoria = $3, ativo = $4, atualizado_em = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *`;
-            const result = await db.query(sql, [nome, valor_meta, categoria, ativo, id]);
+            const { nome, valor_meta, categoria, ativo, tipo_filtro, produto_id, produto_nome, data_inicio, data_fim } = req.body;
+            const sql = `UPDATE metas SET nome = $1, valor_meta = $2, categoria = $3, ativo = $4,
+                         tipo_filtro = $5, produto_id = $6, produto_nome = $7,
+                         data_inicio = $8, data_fim = $9, atualizado_em = CURRENT_TIMESTAMP WHERE id = $10 RETURNING *`;
+            const result = await db.query(sql, [
+                nome, valor_meta, categoria ?? null, ativo,
+                tipo_filtro ?? 'geral', produto_id ?? null, produto_nome ?? null,
+                data_inicio ?? null, data_fim ?? null, id
+            ]);
 
             if (result.rows.length === 0) {
                 return res.status(404).json({
