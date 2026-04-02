@@ -40,7 +40,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
     if (product) {
       setNome(product.nome);
       setCategoria(product.categoria);
-      setPreco(product.preco.toString());
+      setPreco(sanitizeDecimalInput(product.preco.toString()));
     } else {
       resetForm();
     }

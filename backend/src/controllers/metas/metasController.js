@@ -72,9 +72,9 @@ module.exports = {
     async atualizarMeta(req, res) {
         try {
             const { id } = req.params;
-            const { nome, valor_meta, categoria, ativo, atualizado_em } = req.body;
-            const sql = `UPDATE metas SET nome = $1, valor_meta = $2, categoria = $3, ativo = $4, atualizado_em = $5 WHERE id = $6 RETURNING *`;
-            const result = await db.query(sql, [nome, valor_meta, categoria, ativo, atualizado_em || new Date(), id]);
+            const { nome, valor_meta, categoria, ativo } = req.body;
+            const sql = `UPDATE metas SET nome = $1, valor_meta = $2, categoria = $3, ativo = $4, atualizado_em = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *`;
+            const result = await db.query(sql, [nome, valor_meta, categoria, ativo, id]);
 
             if (result.rows.length === 0) {
                 return res.status(404).json({

@@ -30,7 +30,7 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
   useEffect(() => {
     if (goal) {
       setNome(goal.nome);
-      setValorMeta(goal.valorMeta.toString());
+      setValorMeta(sanitizeDecimalInput(goal.valorMeta.toString()));
       setCategoria(goal.categoria || '');
       setAtivo(goal.ativo);
     } else {

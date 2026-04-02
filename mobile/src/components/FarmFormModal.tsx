@@ -35,7 +35,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
     if (farm) {
       setNome(farm.nome);
       setProprietario(farm.proprietario);
-      setHectares(farm.hectares.toString());
+      setHectares(sanitizeDecimalInput(farm.hectares.toString()));
       setLocalizacao(farm.localizacao);
       setTelefone(farm.telefone || '');
       setStatus(farm.status);
