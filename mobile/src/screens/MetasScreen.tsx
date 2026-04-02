@@ -114,7 +114,7 @@ export const MetasScreen: React.FC = () => {
         if (!stats[sale.fazendaId]) {
           stats[sale.fazendaId] = { total: 0, count: 0 };
         }
-        stats[sale.fazendaId].total += sale.valorComDesconto;
+        stats[sale.fazendaId].total += (sale.valorComDesconto ?? sale.valorTotal);
         stats[sale.fazendaId].count += 1;
         
         if (!stats[sale.fazendaId].lastSale || sale.data > stats[sale.fazendaId].lastSale!) {

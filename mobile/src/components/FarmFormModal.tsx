@@ -22,7 +22,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
   onCancel,
 }) => {
   const [nome, setNome] = useState('');
-  const [proprietario, setProprietario] = useState('');
+  const [responsavel, setResponsavel] = useState('');
   const [hectares, setHectares] = useState('');
   const [localizacao, setLocalizacao] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -34,7 +34,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
   useEffect(() => {
     if (farm) {
       setNome(farm.nome);
-      setProprietario(farm.proprietario);
+      setResponsavel(farm.responsavel);
       setHectares(sanitizeDecimalInput(farm.hectares.toString()));
       setLocalizacao(farm.localizacao);
       setTelefone(farm.telefone || '');
@@ -46,7 +46,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
 
   const resetForm = () => {
     setNome('');
-    setProprietario('');
+    setResponsavel('');
     setHectares('');
     setLocalizacao('');
     setTelefone('');
@@ -61,8 +61,8 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
       newErrors.nome = 'Nome é obrigatório';
     }
 
-    if (!proprietario.trim()) {
-      newErrors.proprietario = 'Proprietário é obrigatório';
+    if (!responsavel.trim()) {
+      newErrors.responsavel = 'Responsável é obrigatório';
     }
 
     const hect = parseDecimal(hectares);
@@ -84,7 +84,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
     const farmData: Farm = {
       id: farm?.id || Date.now().toString(),
       nome: nome.trim(),
-      proprietario: proprietario.trim(),
+      responsavel: responsavel.trim(),
       hectares: parseDecimal(hectares),
       localizacao: localizacao.trim(),
       telefone: telefone.trim() || undefined,
@@ -141,20 +141,20 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
               {errors.nome && <Text style={styles.errorText}>{errors.nome}</Text>}
             </View>
 
-            {/* Proprietário */}
+            {/* Responsável */}
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Proprietário *</Text>
+              <Text style={styles.label}>Responsável *</Text>
               <TextInput
-                style={[styles.input, errors.proprietario && styles.inputError]}
-                value={proprietario}
+                style={[styles.input, errors.responsavel && styles.inputError]}
+                value={responsavel}
                 onChangeText={(text) => {
-                  setProprietario(text);
-                  setErrors(prev => ({ ...prev, proprietario: '' }));
+                  setResponsavel(text);
+                  setErrors(prev => ({ ...prev, responsavel: '' }));
                 }}
                 placeholder="Ex: João Silva"
                 placeholderTextColor={Colors.gray[300]}
               />
-              {errors.proprietario && <Text style={styles.errorText}>{errors.proprietario}</Text>}
+              {errors.responsavel && <Text style={styles.errorText}>{errors.responsavel}</Text>}
             </View>
 
             {/* Hectares */}

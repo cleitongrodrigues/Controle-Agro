@@ -46,7 +46,7 @@ CREATE INDEX idx_usuarios_nivel ON usuarios(nivel);
 CREATE TABLE fazendas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nome VARCHAR(80) NOT NULL,
-    proprietario VARCHAR(80) NOT NULL,
+    responsavel VARCHAR(80) NOT NULL,
     hectares DECIMAL(10, 2) NOT NULL CHECK (hectares >= 0),
     localizacao TEXT NOT NULL,
     telefone VARCHAR(14),

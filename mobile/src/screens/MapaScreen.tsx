@@ -69,7 +69,7 @@ export const MapaScreen: React.FC = () => {
     const query = searchQuery.toLowerCase();
     return farms.filter(farm => 
       farm.nome.toLowerCase().includes(query) ||
-      farm.proprietario.toLowerCase().includes(query) ||
+      farm.responsavel.toLowerCase().includes(query) ||
       farm.localizacao.toLowerCase().includes(query)
     );
   }, [farms, searchQuery]);

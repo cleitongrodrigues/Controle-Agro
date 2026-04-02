@@ -7,7 +7,7 @@ export type FarmStatus = 'visitado' | 'pendente' | 'urgente';
 export interface Farm {
   id: string;
   nome: string;
-  proprietario: string;
+  responsavel: string;
   hectares: number;
   localizacao: string;
   telefone?: string;

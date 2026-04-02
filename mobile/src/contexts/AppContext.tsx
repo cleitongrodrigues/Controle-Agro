@@ -13,7 +13,7 @@ function farmFromApi(r: any): Farm {
   return {
     id: r.id,
     nome: r.nome,
-    proprietario: r.proprietario,
+    responsavel: r.responsavel,
     hectares: Number(r.hectares),
     localizacao: r.localizacao,
     telefone: r.telefone,
@@ -110,7 +110,7 @@ function goalToApi(g: Omit<Goal, 'id'>) {
 function farmToApi(f: Omit<Farm, 'id'>) {
   return {
     nome: f.nome,
-    proprietario: f.proprietario,
+    responsavel: f.responsavel,
     hectares: f.hectares,
     localizacao: f.localizacao,
     telefone: f.telefone,

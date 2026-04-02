@@ -50,13 +50,13 @@ module.exports = {
 
     async CriarFazenda(req, res) {
         try {
-            const { nome, proprietario, hectares, localizacao, telefone,
+            const { nome, responsavel, hectares, localizacao, telefone,
                     status, latitude, longitude } = req.body;
-            const sql = `INSERT INTO fazendas (nome, proprietario, hectares, localizacao, telefone,
+            const sql = `INSERT INTO fazendas (nome, responsavel, hectares, localizacao, telefone,
                                                status, latitude, longitude)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
 
-            const result = await db.query(sql, [nome, proprietario, hectares, localizacao, telefone,
+            const result = await db.query(sql, [nome, responsavel, hectares, localizacao, telefone,
                                           status, latitude, longitude]);
 
             return res.status(201).json({
@@ -76,13 +76,13 @@ module.exports = {
     async AtualizarFazenda(req, res) {
         try {
             const { id } = req.params;
-            const { nome, proprietario, hectares, localizacao, telefone,
+            const { nome, responsavel, hectares, localizacao, telefone,
                     status, latitude, longitude } = req.body;
-            const sql = `UPDATE fazendas SET nome = $1, proprietario = $2, hectares = $3, localizacao = $4,
+            const sql = `UPDATE fazendas SET nome = $1, responsavel = $2, hectares = $3, localizacao = $4,
                         telefone = $5, status = $6, latitude = $7, longitude = $8, atualizado_em = CURRENT_TIMESTAMP
                         WHERE id = $9 RETURNING *`;
 
-            const result = await db.query(sql, [nome, proprietario, hectares, localizacao, telefone,
+            const result = await db.query(sql, [nome, responsavel, hectares, localizacao, telefone,
                                           status, latitude, longitude, id]);
 
             if (result.rowCount === 0) {

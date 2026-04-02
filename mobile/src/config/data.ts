@@ -8,7 +8,7 @@ export const FARMS: Farm[] = [
   {
     id: '1',
     nome: 'Faz. Boa Vista',
-    proprietario: 'Ronaldo Ferreira',
+    responsavel: 'Ronaldo Ferreira',
     hectares: 1200,
     localizacao: 'MT-246, km 18',
     status: 'visitado',
@@ -16,7 +16,7 @@ export const FARMS: Farm[] = [
   {
     id: '2',
     nome: 'Faz. São João',
-    proprietario: 'Carlos Mota',
+    responsavel: 'Carlos Mota',
     hectares: 800,
     localizacao: 'Rodovia BR-163, km 42',
     status: 'visitado',
@@ -24,7 +24,7 @@ export const FARMS: Farm[] = [
   {
     id: '3',
     nome: 'Faz. Esperança',
-    proprietario: 'Maria Silva',
+    responsavel: 'Maria Silva',
     hectares: 600,
     localizacao: 'Estrada Esperança, s/n',
     status: 'visitado',
@@ -32,7 +32,7 @@ export const FARMS: Farm[] = [
   {
     id: '4',
     nome: 'Faz. Aliança',
-    proprietario: 'José Alves',
+    responsavel: 'José Alves',
     hectares: 420,
     localizacao: 'Estrada Aliança s/n',
     status: 'pendente',
@@ -40,7 +40,7 @@ export const FARMS: Farm[] = [
   {
     id: '5',
     nome: 'Faz. Horizonte',
-    proprietario: 'Roberto Lima',
+    responsavel: 'Roberto Lima',
     hectares: 1800,
     localizacao: 'Rod. Estadual 208, km 7',
     status: 'urgente',
@@ -48,7 +48,7 @@ export const FARMS: Farm[] = [
   {
     id: '6',
     nome: 'Faz. Vitória',
-    proprietario: 'Paulo Santos',
+    responsavel: 'Paulo Santos',
     hectares: 950,
     localizacao: 'MT-170, km 32',
     status: 'visitado',
@@ -56,7 +56,7 @@ export const FARMS: Farm[] = [
   {
     id: '7',
     nome: 'Faz. Progresso',
-    proprietario: 'Ana Paula Costa',
+    responsavel: 'Ana Paula Costa',
     hectares: 680,
     localizacao: 'Linha 10, lote 45',
     status: 'pendente',
@@ -64,7 +64,7 @@ export const FARMS: Farm[] = [
   {
     id: '8',
     nome: 'Faz. Santa Clara',
-    proprietario: 'João Batista',
+    responsavel: 'João Batista',
     hectares: 1500,
     localizacao: 'BR-242, km 85',
     status: 'visitado',

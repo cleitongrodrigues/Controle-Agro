@@ -36,7 +36,7 @@ export const FarmPickerModal: React.FC<FarmPickerModalProps> = ({
     const query = searchQuery.toLowerCase();
     return farms.filter(farm =>
       farm.nome.toLowerCase().includes(query) ||
-      farm.proprietario.toLowerCase().includes(query) ||
+      farm.responsavel.toLowerCase().includes(query) ||
       farm.localizacao.toLowerCase().includes(query)
     );
   }, [farms, searchQuery]);
@@ -103,7 +103,7 @@ export const FarmPickerModal: React.FC<FarmPickerModalProps> = ({
                           </Text>
                         </View>
                         <Text style={styles.farmDetail}>
-                          {farm.proprietario} · {farm.hectares} ha
+                          {farm.responsavel} · {farm.hectares} ha
                         </Text>
                       </View>
                     </View>

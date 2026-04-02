@@ -76,7 +76,7 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
     const query = searchQuery.toLowerCase();
     return farms.filter(farm =>
       farm.nome.toLowerCase().includes(query) ||
-      farm.proprietario.toLowerCase().includes(query) ||
+      farm.responsavel.toLowerCase().includes(query) ||
       farm.localizacao.toLowerCase().includes(query)
     );
   }, [farms, searchQuery]);
@@ -154,7 +154,7 @@ export const FarmListScreen: React.FC<FarmListScreenProps> = ({ visible, onClose
                 <View style={styles.farmBody}>
                   <View style={styles.farmDetailRow}>
                     <Text style={styles.farmIcon}>👤</Text>
-                    <Text style={styles.farmDetail}>{farm.proprietario}</Text>
+                    <Text style={styles.farmDetail}>{farm.responsavel}</Text>
                   </View>
                   <View style={styles.farmDetailRow}>
                     <Text style={styles.farmIcon}>📍</Text>

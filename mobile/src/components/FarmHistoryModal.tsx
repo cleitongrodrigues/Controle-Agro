@@ -103,7 +103,7 @@ export const FarmHistoryModal: React.FC<FarmHistoryModalProps> = ({
         <View style={styles.header}>
           <Text style={styles.title}>{farm.nome}</Text>
           <Text style={styles.subtitle}>
-            {farm.proprietario} · {farm.hectares} ha · {farm.localizacao}
+            {farm.responsavel} · {farm.hectares} ha · {farm.localizacao}
           </Text>
         </View>
 
