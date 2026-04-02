@@ -11,6 +11,7 @@ export { ToastContainer } from './ToastContainer';
 export { FarmHistoryModal } from './FarmHistoryModal';
 export { FarmFormModal } from './FarmFormModal';
 export { ProductPickerModal } from './ProductPickerModal';
+export { FarmPickerModal } from './FarmPickerModal';
 export { ProductFormModal } from './ProductFormModal';
 export { GoalFormModal } from './GoalFormModal';
 export { ProductListScreen } from '../screens/ProductListScreen';
@@ -23,6 +24,7 @@ export { ConfirmModal } from './ConfirmModal';
 export { SyncBadge } from './SyncBadge';
 export { OfflineBanner } from './OfflineBanner';
 export { UsuarioFormModal } from './UsuarioFormModal';
+export { PedidoItem } from './PedidoItem';
 export {
   Skeleton,
   MetricCardSkeleton,

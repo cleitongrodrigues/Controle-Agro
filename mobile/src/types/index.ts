@@ -38,6 +38,33 @@ export interface Sale {
   sincronizado: boolean;
 }
 
+export interface ItemPedido {
+  id: string;
+  pedidoId: string;
+  produtoId: string;
+  produto: string;
+  categoria: string;
+  quantidade: number;
+  valorUnitario: number;
+  valorTotal: number;
+  desconto?: number;
+  descontoTipo?: 'percentual' | 'valor';
+  valorComDesconto?: number;
+}
+
+export interface Pedido {
+  id: string;
+  fazendaId: string;
+  fazendaNome: string;
+  itens: ItemPedido[];
+  valorTotal: number;
+  desconto?: number;
+  descontoTipo?: 'percentual' | 'valor';
+  valorFinal?: number;
+  data: string;
+  sincronizado: boolean;
+}
+
 export interface Product {
   id: string;
   nome: string;

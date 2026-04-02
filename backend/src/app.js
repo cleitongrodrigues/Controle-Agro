@@ -7,6 +7,7 @@ const vendaRoutes = require("./routes/venda/vendaRoutes");
 const metasRoutes = require("./routes/metas/metaRoutes");
 const responsavelRoutes = require("./routes/responsaveis/responsavelRoutes");
 const historicoRoutes = require("./routes/historico_venda/historicoRoutes");
+const pedidoRoutes = require("./routes/pedidos/pedidoRoutes");
 const authRoutes = require("./routes/auth/authRoutes");
 const authMiddleware = require("./middlewares/authMiddleware");
 
@@ -26,5 +27,6 @@ app.use("/vendas", authMiddleware, vendaRoutes);
 app.use("/metas", authMiddleware, metasRoutes);
 app.use("/responsaveis", authMiddleware, responsavelRoutes);
 app.use("/historico_venda", authMiddleware, historicoRoutes);
+app.use("/pedidos", authMiddleware, pedidoRoutes);
 
 module.exports = app;

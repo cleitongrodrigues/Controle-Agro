@@ -2,8 +2,8 @@
 // APP CONTEXT - GERENCIAMENTO DE ESTADO
 // ----------------------------------------------------------
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Sale, Farm, Product, Goal, Usuario } from '../types';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { Sale, Farm, Product, Goal, Usuario, Pedido, ItemPedido } from '../types';
 import { api } from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -23,36 +23,58 @@ function farmFromApi(r: any): Farm {
   };
 }
 
-function saleFromApi(r: any): Sale {
+function itemPedidoFromApi(r: any, pedidoId: string): ItemPedido {
   return {
     id: r.id,
-    fazendaId: r.fazenda_id,
-    fazendaNome: r.fazenda_nome,
+    pedidoId,
+    produtoId: r.produto_id ?? '',
     produto: r.produto,
+    categoria: r.categoria ?? '',
     quantidade: Number(r.quantidade),
     valorUnitario: Number(r.valor_unitario),
     valorTotal: Number(r.valor_total),
     desconto: r.desconto != null ? Number(r.desconto) : undefined,
-    descontoTipo: r.desconto_tipo,
+    descontoTipo: r.desconto_tipo ?? undefined,
     valorComDesconto: r.valor_com_desconto != null ? Number(r.valor_com_desconto) : undefined,
+  };
+}
+
+function pedidoFromApi(r: any): Pedido {
+  return {
+    id: r.id,
+    fazendaId: r.fazenda_id,
+    fazendaNome: r.fazenda_nome,
+    itens: (r.itens ?? []).map((item: any) => itemPedidoFromApi(item, r.id)),
+    valorTotal: Number(r.valor_total),
+    desconto: r.desconto != null ? Number(r.desconto) : undefined,
+    descontoTipo: r.desconto_tipo ?? undefined,
+    valorFinal: r.valor_final != null ? Number(r.valor_final) : undefined,
     data: r.data,
     sincronizado: r.sincronizado ?? true,
   };
 }
 
-function saleToApi(s: Omit<Sale, 'id' | 'sincronizado'> & Partial<Pick<Sale, 'id' | 'sincronizado'>>) {
+function pedidoToApi(p: Omit<Pedido, 'id' | 'sincronizado'> & Partial<Pick<Pedido, 'id' | 'sincronizado'>> & { itens: Omit<ItemPedido, 'id' | 'pedidoId'>[] }) {
   return {
-    fazenda_id: s.fazendaId,
-    fazenda_nome: s.fazendaNome,
-    produto: s.produto,
-    quantidade: s.quantidade,
-    valor_unitario: s.valorUnitario,
-    valor_total: s.valorTotal,
-    desconto: s.desconto,
-    desconto_tipo: s.descontoTipo,
-    valor_com_desconto: s.valorComDesconto,
-    data: s.data,
-    sincronizado: s.sincronizado ?? true,
+    fazenda_id: p.fazendaId,
+    fazenda_nome: p.fazendaNome,
+    valor_total: p.valorTotal,
+    desconto: p.desconto ?? null,
+    desconto_tipo: p.descontoTipo ?? null,
+    valor_final: p.valorFinal ?? null,
+    data: p.data,
+    sincronizado: p.sincronizado ?? false,
+    itens: p.itens.map(item => ({
+      produto_id: item.produtoId || null,
+      produto: item.produto,
+      categoria: item.categoria || null,
+      quantidade: item.quantidade,
+      valor_unitario: item.valorUnitario,
+      valor_total: item.valorTotal,
+      desconto: item.desconto ?? null,
+      desconto_tipo: item.descontoTipo ?? null,
+      valor_com_desconto: item.valorComDesconto ?? null,
+    })),
   };
 }
 
@@ -100,15 +122,18 @@ function productFromApi(r: any): Product {
 
 // -- Interface do contexto -------------------------------
 
+type NewPedidoPayload = Omit<Pedido, 'id' | 'sincronizado'> & { itens: Omit<ItemPedido, 'id' | 'pedidoId'>[] };
+
 interface AppContextData {
-  sales: Sale[];
+  pedidos: Pedido[];
+  sales: Sale[];  // derived from pedidos — for backward compat
   farms: Farm[];
   products: Product[];
   goals: Goal[];
   usuarios: Usuario[];
-  addSale: (sale: Omit<Sale, 'id' | 'sincronizado'>) => Promise<void>;
-  updateSale: (id: string, sale: Sale) => Promise<void>;
-  deleteSale: (id: string) => Promise<void>;
+  addPedido: (pedido: NewPedidoPayload) => Promise<void>;
+  updatePedido: (id: string, pedido: NewPedidoPayload) => Promise<void>;
+  deletePedido: (id: string) => Promise<void>;
   addFarm: (farm: Omit<Farm, 'id'>) => Promise<void>;
   updateFarm: (id: string, farm: Farm) => Promise<void>;
   deleteFarm: (id: string) => Promise<void>;
@@ -129,7 +154,7 @@ const AppContext = createContext<AppContextData>({} as AppContextData);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const [sales, setSales] = useState<Sale[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -141,7 +166,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (isAuthenticated) {
       recarregar();
     } else {
-      setSales([]);
+      setPedidos([]);
       setFarms([]);
       setProducts([]);
       setGoals([]);
@@ -152,14 +177,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   async function recarregar() {
     try {
       setLoading(true);
-      const [resVendas, resFazendas, resProdutos, resMetas, resUsuarios] = await Promise.all([
-        api.get<{ dados: any[] }>('/vendas'),
+      const [resPedidos, resFazendas, resProdutos, resMetas, resUsuarios] = await Promise.all([
+        api.get<{ dados: any[] }>('/pedidos'),
         api.get<{ dados: any[] }>('/fazendas'),
         api.get<{ dados: any[] }>('/produtos'),
         api.get<{ dados: any[] }>('/metas'),
         api.get<{ dados: any[] }>('/usuarios'),
       ]);
-      setSales(resVendas.dados.map(saleFromApi));
+      setPedidos(resPedidos.dados.map(pedidoFromApi));
       setFarms(resFazendas.dados.map(farmFromApi));
       setProducts(resProdutos.dados.map(productFromApi));
       setGoals(resMetas.dados.map(goalFromApi));
@@ -171,21 +196,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }
 
-  // -- Vendas ---------------------------------------------
+  // -- Pedidos --------------------------------------------
 
-  const addSale = async (sale: Omit<Sale, 'id' | 'sincronizado'>) => {
-    const res = await api.post<{ dados: any }>('/vendas', saleToApi(sale));
-    setSales(prev => [saleFromApi(res.dados), ...prev]);
+  const sales: Sale[] = useMemo(() =>
+    pedidos.flatMap(p =>
+      p.itens.map(item => ({
+        id: item.id,
+        fazendaId: p.fazendaId,
+        fazendaNome: p.fazendaNome,
+        produto: item.produto,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
+        valorTotal: item.valorTotal,
+        data: p.data,
+        sincronizado: p.sincronizado,
+      } as Sale))
+    ),
+    [pedidos]
+  );
+
+  const addPedido = async (pedido: NewPedidoPayload) => {
+    const res = await api.post<{ dados: any }>('/pedidos', pedidoToApi(pedido));
+    setPedidos(prev => [pedidoFromApi(res.dados), ...prev]);
   };
 
-  const updateSale = async (id: string, sale: Sale) => {
-    const res = await api.put<{ dados: any }>(`/vendas/${id}`, saleToApi(sale));
-    setSales(prev => prev.map(s => s.id === id ? saleFromApi(res.dados) : s));
+  const updatePedido = async (id: string, pedido: NewPedidoPayload) => {
+    const res = await api.put<{ dados: any }>(`/pedidos/${id}`, pedidoToApi(pedido));
+    setPedidos(prev => prev.map(p => p.id === id ? pedidoFromApi(res.dados) : p));
   };
 
-  const deleteSale = async (id: string) => {
-    await api.delete(`/vendas/${id}`);
-    setSales(prev => prev.filter(s => s.id !== id));
+  const deletePedido = async (id: string) => {
+    await api.delete(`/pedidos/${id}`);
+    setPedidos(prev => prev.filter(p => p.id !== id));
   };
 
   // -- Fazendas -------------------------------------------
@@ -268,8 +310,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   return (
     <AppContext.Provider value={{
-      sales, farms, products, goals, usuarios,
-      addSale, updateSale, deleteSale,
+      pedidos, sales, farms, products, goals, usuarios,
+      addPedido, updatePedido, deletePedido,
       addFarm, updateFarm, deleteFarm,
       addProduct, updateProduct, deleteProduct,
       addGoal, updateGoal, deleteGoal,

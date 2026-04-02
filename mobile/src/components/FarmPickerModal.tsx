@@ -1,54 +1,50 @@
 // ══════════════════════════════════════════════════════════
-// PRODUCT PICKER MODAL - Modal de seleção de produto com busca
+// FARM PICKER MODAL - Modal de seleção de fazenda com busca
 // ══════════════════════════════════════════════════════════
 
 import React, { useState, useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
-import { Product } from '../types';
+import { Farm } from '../types';
 import { SearchBar } from './SearchBar';
 
-interface ProductPickerModalProps {
+interface FarmPickerModalProps {
   visible: boolean;
-  products: Product[];
+  farms: Farm[];
   selectedId?: string;
-  onSelect: (product: Product) => void;
+  onSelect: (farm: Farm) => void;
   onClose: () => void;
 }
 
-export const ProductPickerModal: React.FC<ProductPickerModalProps> = ({
+const STATUS_COLORS: Record<string, string> = {
+  visitado: Colors.green[600],
+  pendente: Colors.amber[600],
+  urgente: Colors.red[600],
+};
+
+export const FarmPickerModal: React.FC<FarmPickerModalProps> = ({
   visible,
-  products,
+  farms,
   selectedId,
   onSelect,
   onClose,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    
+  const filteredFarms = useMemo(() => {
+    if (!searchQuery.trim()) return farms;
     const query = searchQuery.toLowerCase();
-    return products.filter(product =>
-      product.nome.toLowerCase().includes(query) ||
-      product.categoria.toLowerCase().includes(query)
+    return farms.filter(farm =>
+      farm.nome.toLowerCase().includes(query) ||
+      farm.proprietario.toLowerCase().includes(query) ||
+      farm.localizacao.toLowerCase().includes(query)
     );
-  }, [products, searchQuery]);
+  }, [farms, searchQuery]);
 
-  const handleSelect = (product: Product) => {
-    onSelect(product);
+  const handleSelect = (farm: Farm) => {
+    onSelect(farm);
     setSearchQuery('');
     onClose();
-  };
-
-  const getCategoryColor = (categoria: string) => {
-    switch (categoria) {
-      case 'herbicida': return Colors.green[600];
-      case 'semente': return Colors.amber[600];
-      case 'fertilizante': return '#8b5cf6';
-      case 'fungicida': return Colors.red[600];
-      default: return Colors.gray[500];
-    }
   };
 
   return (
@@ -62,7 +58,7 @@ export const ProductPickerModal: React.FC<ProductPickerModalProps> = ({
       <View style={styles.backdrop}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Selecionar Produto</Text>
+            <Text style={styles.title}>Selecionar Fazenda</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeIcon}>✕</Text>
             </TouchableOpacity>
@@ -72,53 +68,51 @@ export const ProductPickerModal: React.FC<ProductPickerModalProps> = ({
             <SearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Buscar produto..."
+              placeholder="Buscar fazenda..."
             />
           </View>
 
           <ScrollView style={styles.content}>
-            {filteredProducts.length === 0 ? (
+            {filteredFarms.length === 0 ? (
               <Text style={styles.emptyText}>
-                {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}
+                {searchQuery ? 'Nenhuma fazenda encontrada' : 'Nenhuma fazenda cadastrada'}
               </Text>
             ) : (
-              filteredProducts.map((product) => (
-                <TouchableOpacity
-                  key={product.id}
-                  style={[
-                    styles.productItem,
-                    selectedId === product.id && styles.productItemSelected,
-                  ]}
-                  onPress={() => handleSelect(product)}
-                >
-                  <View style={styles.productInfo}>
-                    <Text style={styles.productName}>{product.nome}</Text>
-                    <View style={styles.productMeta}>
-                      <View
-                        style={[
-                          styles.categoryBadge,
-                          { backgroundColor: `${getCategoryColor(product.categoria)}20` },
-                        ]}
-                      >
-                        <Text
+              filteredFarms.map((farm) => {
+                const statusColor = STATUS_COLORS[farm.status] ?? Colors.gray[500];
+                return (
+                  <TouchableOpacity
+                    key={farm.id}
+                    style={[
+                      styles.farmItem,
+                      selectedId === farm.id && styles.farmItemSelected,
+                    ]}
+                    onPress={() => handleSelect(farm)}
+                  >
+                    <View style={styles.farmInfo}>
+                      <Text style={styles.farmName}>{farm.nome}</Text>
+                      <View style={styles.farmMeta}>
+                        <View
                           style={[
-                            styles.categoryText,
-                            { color: getCategoryColor(product.categoria) },
+                            styles.statusBadge,
+                            { backgroundColor: `${statusColor}20` },
                           ]}
                         >
-                          {product.categoria}
+                          <Text style={[styles.statusText, { color: statusColor }]}>
+                            {farm.status}
+                          </Text>
+                        </View>
+                        <Text style={styles.farmDetail}>
+                          {farm.proprietario} · {farm.hectares} ha
                         </Text>
                       </View>
-                      <Text style={styles.priceText}>
-                        R$ {product.preco.toFixed(2)}
-                      </Text>
                     </View>
-                  </View>
-                  {selectedId === product.id && (
-                    <Text style={styles.checkIcon}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              ))
+                    {selectedId === farm.id && (
+                      <Text style={styles.checkIcon}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })
             )}
           </ScrollView>
         </View>
@@ -181,7 +175,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: Spacing.xxl,
   },
-  productItem: {
+  farmItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -191,41 +185,43 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     backgroundColor: Colors.gray[50],
   },
-  productItemSelected: {
+  farmItemSelected: {
     backgroundColor: Colors.green[50],
     borderWidth: 1,
     borderColor: Colors.green[600],
   },
-  productInfo: {
+  farmInfo: {
     flex: 1,
   },
-  productName: {
-    fontSize: FontSizes.base,
-    fontWeight: '500',
+  farmName: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
     color: Colors.gray[900],
     marginBottom: 4,
   },
-  productMeta: {
+  farmMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  categoryBadge: {
-    paddingHorizontal: Spacing.sm,
+  statusBadge: {
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: BorderRadius.pill,
+    borderRadius: BorderRadius.sm,
   },
-  categoryText: {
+  statusText: {
     fontSize: FontSizes.xs,
-    fontWeight: '500',
-  },
-  priceText: {
-    fontSize: FontSizes.sm,
-    color: Colors.gray[700],
     fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  farmDetail: {
+    fontSize: FontSizes.sm,
+    color: Colors.gray[500],
   },
   checkIcon: {
     fontSize: FontSizes.xl,
     color: Colors.green[600],
+    fontWeight: '700',
+    marginLeft: Spacing.sm,
   },
 });
