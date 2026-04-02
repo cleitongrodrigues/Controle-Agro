@@ -1,9 +1,10 @@
 const db = require('../../database/connection.js');
+const bcrypt = require('bcryptjs');
 
 module.exports = {
     async ListarTodos(req, res) {
         try {
-            const sql = 'SELECT * FROM usuarios';
+            const sql = 'SELECT id, nome, email, telefone, cargo, nivel, ativo, criado_em, atualizado_em FROM usuarios';
             const result = await db.query(sql);
 
             return res.status(200).json({
@@ -24,7 +25,7 @@ module.exports = {
     async buscarPorId(req, res) {
         try {
             const { id } = req.params;
-            const sql = 'SELECT * FROM usuarios WHERE id = $1';
+            const sql = 'SELECT id, nome, email, telefone, cargo, nivel, ativo, criado_em, atualizado_em FROM usuarios WHERE id = $1';
             const result = await db.query(sql, [id]);
 
             if (result.rows.length === 0) {
@@ -51,9 +52,11 @@ module.exports = {
     async criarUsuario(req, res) {
         try {
             const { nome, email, senha, telefone, cargo, nivel } = req.body;
+            const senhaHash = await bcrypt.hash(senha, 10);
             const sql = `INSERT INTO usuarios (nome, email, senha, telefone, cargo, nivel) 
-                         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-            const result = await db.query(sql, [nome, email, senha, telefone, cargo, nivel || 'vendedor']);
+                         VALUES ($1, $2, $3, $4, $5, $6)
+                         RETURNING id, nome, email, telefone, cargo, nivel, ativo, criado_em`;
+            const result = await db.query(sql, [nome, email, senhaHash, telefone, cargo, nivel || 'vendedor']);
 
             return res.status(201).json({
                 sucesso: true,
@@ -73,8 +76,16 @@ module.exports = {
         try {
             const { id } = req.params;
             const { nome, email, senha, telefone, cargo, nivel } = req.body;
-            const sql = 'UPDATE usuarios SET nome = $1, email = $2, senha = $3, telefone = $4, cargo = $5, nivel = $6, atualizado_em = CURRENT_TIMESTAMP WHERE id = $7 RETURNING *';
-            const result = await db.query(sql, [nome, email, senha, telefone, cargo, nivel, id]);
+            const senhaHash = senha ? await bcrypt.hash(senha, 10) : undefined;
+
+            // Se senha não foi enviada, não atualiza o campo
+            const sql = senhaHash
+                ? 'UPDATE usuarios SET nome = $1, email = $2, senha = $3, telefone = $4, cargo = $5, nivel = $6, atualizado_em = CURRENT_TIMESTAMP WHERE id = $7 RETURNING id, nome, email, telefone, cargo, nivel, ativo, atualizado_em'
+                : 'UPDATE usuarios SET nome = $1, email = $2, telefone = $3, cargo = $4, nivel = $5, atualizado_em = CURRENT_TIMESTAMP WHERE id = $6 RETURNING id, nome, email, telefone, cargo, nivel, ativo, atualizado_em';
+            const params = senhaHash
+                ? [nome, email, senhaHash, telefone, cargo, nivel, id]
+                : [nome, email, telefone, cargo, nivel, id];
+            const result = await db.query(sql, params);
 
             if (result.rowCount === 0) {
                 return res.status(404).json({

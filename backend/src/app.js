@@ -6,18 +6,23 @@ const vendaRoutes = require("./routes/venda/vendaRoutes");
 const metasRoutes = require("./routes/metas/metaRoutes");
 const responsavelRoutes = require("./routes/responsaveis/responsavelRoutes");
 const historicoRoutes = require("./routes/historico_venda/historicoRoutes");
+const authRoutes = require("./routes/auth/authRoutes");
+const authMiddleware = require("./middlewares/authMiddleware");
 
 const app = express();
 
 app.use(express.json());
 
-// Rotas
-app.use("/usuarios", usuarioRoutes);
-app.use("/fazendas", fazendaRoutes);
-app.use("/produtos", produtoRoutes);
-app.use("/vendas", vendaRoutes);
-app.use("/metas", metasRoutes);
-app.use("/responsaveis", responsavelRoutes);
-app.use("/historico_venda", historicoRoutes);
+// Rota pública
+app.use("/auth", authRoutes);
+
+// Rotas protegidas
+app.use("/usuarios", authMiddleware, usuarioRoutes);
+app.use("/fazendas", authMiddleware, fazendaRoutes);
+app.use("/produtos", authMiddleware, produtoRoutes);
+app.use("/vendas", authMiddleware, vendaRoutes);
+app.use("/metas", authMiddleware, metasRoutes);
+app.use("/responsaveis", authMiddleware, responsavelRoutes);
+app.use("/historico_venda", authMiddleware, historicoRoutes);
 
 module.exports = app;

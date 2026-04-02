@@ -25,7 +25,7 @@ CREATE TABLE usuarios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nome VARCHAR(80) NOT NULL,
     email VARCHAR(80) NOT NULL UNIQUE,
-    senha VARCHAR(20) NOT NULL,
+    senha VARCHAR(60) NOT NULL,
     telefone VARCHAR(14),
     cargo VARCHAR(100),
     nivel nivel_usuario NOT NULL DEFAULT 'vendedor',
