@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { Goal } from '../types';
-import { generateId } from '../utils/helpers';
+import { generateId, parseDecimal, sanitizeDecimalInput } from '../utils/helpers';
 
 interface GoalFormModalProps {
   visible: boolean;
@@ -53,7 +53,7 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
       newErrors.nome = 'Nome é obrigatório';
     }
 
-    const valor = parseFloat(valorMeta);
+    const valor = parseDecimal(valorMeta);
     if (!valorMeta || valor <= 0) {
       newErrors.valorMeta = 'Valor deve ser maior que zero';
     }
@@ -68,7 +68,7 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
     const goalData: Goal = {
       id: goal?.id || generateId(),
       nome: nome.trim(),
-      valorMeta: parseFloat(valorMeta),
+      valorMeta: parseDecimal(valorMeta),
       categoria: categoria.trim() || undefined,
       ativo,
     };
@@ -123,11 +123,11 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
                 style={[styles.input, errors.valorMeta && styles.inputError]}
                 value={valorMeta}
                 onChangeText={(text) => {
-                  setValorMeta(text);
+                  setValorMeta(sanitizeDecimalInput(text));
                   setErrors(prev => ({ ...prev, valorMeta: '' }));
                 }}
                 placeholder="18000"
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 placeholderTextColor={Colors.gray[400]}
               />
               {errors.valorMeta && <Text style={styles.errorText}>{errors.valorMeta}</Text>}

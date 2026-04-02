@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { Farm, FarmStatus } from '../types';
+import { parseDecimal, sanitizeDecimalInput } from '../utils/helpers';
 
 interface FarmFormModalProps {
   visible: boolean;
@@ -64,7 +65,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
       newErrors.proprietario = 'Proprietário é obrigatório';
     }
 
-    const hect = parseFloat(hectares);
+    const hect = parseDecimal(hectares);
     if (!hectares || isNaN(hect) || hect <= 0) {
       newErrors.hectares = 'Hectares deve ser maior que zero';
     }
@@ -84,7 +85,7 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
       id: farm?.id || Date.now().toString(),
       nome: nome.trim(),
       proprietario: proprietario.trim(),
-      hectares: parseFloat(hectares),
+      hectares: parseDecimal(hectares),
       localizacao: localizacao.trim(),
       telefone: telefone.trim() || undefined,
       status,
@@ -163,11 +164,11 @@ export const FarmFormModal: React.FC<FarmFormModalProps> = ({
                 style={[styles.input, errors.hectares && styles.inputError]}
                 value={hectares}
                 onChangeText={(text) => {
-                  setHectares(text);
+                  setHectares(sanitizeDecimalInput(text));
                   setErrors(prev => ({ ...prev, hectares: '' }));
                 }}
                 placeholder="Ex: 1200"
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 placeholderTextColor={Colors.gray[300]}
               />
               {errors.hectares && <Text style={styles.errorText}>{errors.hectares}</Text>}

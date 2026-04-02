@@ -31,7 +31,7 @@ CREATE TABLE usuarios (
     nivel nivel_usuario NOT NULL DEFAULT 'vendedor',
     ativo BOOLEAN DEFAULT true,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices
@@ -54,7 +54,7 @@ CREATE TABLE fazendas (
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices
@@ -73,7 +73,7 @@ CREATE TABLE produtos (
     categoria categoria_produto NOT NULL,
     ativo BOOLEAN DEFAULT true,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices
@@ -93,7 +93,7 @@ CREATE TABLE responsaveis (
     cargo VARCHAR(100),
     principal BOOLEAN DEFAULT false,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices
@@ -121,7 +121,7 @@ CREATE TABLE vendas (
     data DATE NOT NULL,
     sincronizado BOOLEAN DEFAULT false,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices
@@ -143,7 +143,7 @@ CREATE TABLE metas (
     categoria VARCHAR(80),
     ativo BOOLEAN DEFAULT true,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    atualizado_em TIMESTAMP
 );
 
 -- Índices

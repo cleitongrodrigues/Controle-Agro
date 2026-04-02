@@ -13,7 +13,7 @@ import { AppHeader } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { useApp } from '../contexts/AppContext';
-import { storageService } from '../services/storage';
+// TODO (offline): import { storageService } from '../services/storage';
 import { Share } from 'react-native';
 
 interface DataSyncScreenProps {
@@ -36,7 +36,7 @@ interface SyncLog {
 }
 
 export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose }) => {
-  const { sales, products, farms } = useApp();
+  const { sales, products, farms, recarregar } = useApp();
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const [pendingData, setPendingData] = useState(0);
   const [storageStats, setStorageStats] = useState<StorageStats>({
@@ -63,22 +63,7 @@ export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose
 
   const loadSyncData = async () => {
     try {
-      const lastSyncStr = await storageService.getItem<string>('@agrovendas:lastSync');
-      if (lastSyncStr) {
-        setLastSync(new Date(lastSyncStr));
-      }
-
-      const lastBackupStr = await storageService.getItem<string>('@agrovendas:lastBackup');
-      if (lastBackupStr) {
-        setLastBackup(new Date(lastBackupStr));
-      }
-
-      const mode = await storageService.getItem<string>('@agrovendas:syncMode');
-      if (mode) {
-        setSyncMode(mode as 'wifi' | 'all' | 'manual');
-      }
-
-      // Simular dados pendentes (em produção, seria verificado no servidor)
+      // TODO (offline): ler lastSync, lastBackup, syncMode do storageService
       setPendingData(0);
     } catch (error) {
       console.error('Erro ao carregar dados de sincronização:', error);
@@ -87,69 +72,38 @@ export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose
 
   const calculateStorageStats = async () => {
     try {
-      const salesData = await storageService.getItem<string>('@agrovendas:sales');
-      const productsData = await storageService.getItem<string>('@agrovendas:products');
-      const farmsData = await storageService.getItem<string>('@agrovendas:farms');
-
-      const salesSize = salesData ? JSON.stringify(salesData).length : 0;
-      const productsSize = productsData ? JSON.stringify(productsData).length : 0;
-      const farmsSize = farmsData ? JSON.stringify(farmsData).length : 0;
-
-      const stats = {
-        sales: salesSize,
-        products: productsSize,
-        farms: farmsSize,
-        total: salesSize + productsSize + farmsSize,
-      };
-
+      // Estimativa baseada nos dados em memória
+      const salesSize = JSON.stringify(sales).length;
+      const productsSize = JSON.stringify(products).length;
+      const farmsSize = JSON.stringify(farms).length;
+      const stats = { sales: salesSize, products: productsSize, farms: farmsSize, total: salesSize + productsSize + farmsSize };
       setStorageStats(stats);
-      setCacheSize(stats.total * 0.1); // Simular 10% como cache
+      setCacheSize(0);
     } catch (error) {
       console.error('Erro ao calcular estatísticas:', error);
     }
   };
 
   const loadSyncLogs = async () => {
-    try {
-      const logsStr = await storageService.getItem<SyncLog[]>('@agrovendas:syncLogs');
-      if (logsStr) {
-        setSyncLogs(Array.isArray(logsStr) ? logsStr.slice(0, 10) : []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar logs:', error);
-    }
+    // TODO (offline): carregar logs do storageService
+    setSyncLogs([]);
   };
 
   const addSyncLog = async (type: SyncLog['type'], message: string) => {
-    const newLog: SyncLog = {
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      type,
-      message,
-    };
-
-    const updatedLogs = [newLog, ...syncLogs].slice(0, 50); // Manter últimos 50
-    setSyncLogs(updatedLogs);
-
-    try {
-      await storageService.setItem('@agrovendas:syncLogs', updatedLogs);
-    } catch (error) {
-      console.error('Erro ao salvar log:', error);
-    }
+    const newLog: SyncLog = { id: Date.now().toString(), timestamp: new Date(), type, message };
+    setSyncLogs(prev => [newLog, ...prev].slice(0, 50));
+    // TODO (offline): persistir no storageService
   };
 
   const handleForceSync = async () => {
     setIsSyncing(true);
     try {
-      // Simular sincronização
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await recarregar();
       const now = new Date();
       setLastSync(now);
-      await storageService.setItem('@agrovendas:lastSync', now.toISOString());
-      
-      await addSyncLog('success', 'Sincronização manual concluída com sucesso');
-      Alert.alert('Sucesso', 'Dados sincronizados com sucesso!');
+      // TODO (offline): await storageService.setItem('@agrovendas:lastSync', now.toISOString());
+      await addSyncLog('success', 'Sincronização com servidor concluída');
+      Alert.alert('Sucesso', 'Dados atualizados do servidor!');
     } catch (error) {
       await addSyncLog('error', 'Erro na sincronização: ' + error);
       Alert.alert('Erro', 'Falha ao sincronizar dados.');
@@ -160,12 +114,8 @@ export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose
 
   const handleSyncModeChange = async (mode: 'wifi' | 'all' | 'manual') => {
     setSyncMode(mode);
-    try {
-      await storageService.setItem('@agrovendas:syncMode', mode);
-      await addSyncLog('info', `Modo de sincronização alterado para: ${getModeLabel(mode)}`);
-    } catch (error) {
-      console.error('Erro ao salvar modo de sincronização:', error);
-    }
+    // TODO (offline): await storageService.setItem('@agrovendas:syncMode', mode);
+    await addSyncLog('info', `Modo de sincronização alterado para: ${getModeLabel(mode)}`);
   };
 
   const getModeLabel = (mode: string) => {
@@ -178,59 +128,13 @@ export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose
   };
 
   const handleBackup = async () => {
-    try {
-      const backupData = {
-        sales,
-        products,
-        farms,
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
-      };
-
-      await storageService.setItem('@agrovendas:backup', backupData);
-      
-      const now = new Date();
-      setLastBackup(now);
-      await storageService.setItem('@agrovendas:lastBackup', now.toISOString());
-      
-      await addSyncLog('success', 'Backup local criado com sucesso');
-      Alert.alert('Sucesso', 'Backup criado com sucesso!');
-    } catch (error) {
-      await addSyncLog('error', 'Erro ao criar backup: ' + error);
-      Alert.alert('Erro', 'Falha ao criar backup.');
-    }
+    // TODO (offline): implementar backup local com storageService
+    Alert.alert('Backup', 'No modo online, os dados são armazenados no servidor. Backup local disponível no modo offline.');
   };
 
   const handleRestoreBackup = async () => {
-    Alert.alert(
-      'Restaurar Backup',
-      'Isso irá substituir todos os dados atuais. Deseja continuar?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Restaurar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const backupData = await storageService.getItem<any>('@agrovendas:backup');
-              if (!backupData) {
-                Alert.alert('Aviso', 'Nenhum backup encontrado.');
-                return;
-              }
-              
-              // Aqui você chamaria as funções do context para restaurar os dados
-              // Por exemplo: setSales(backupData.sales), setProducts(backupData.products), etc.
-              
-              await addSyncLog('success', 'Dados restaurados do backup');
-              Alert.alert('Sucesso', 'Backup restaurado com sucesso! Reinicie o app.');
-            } catch (error) {
-              await addSyncLog('error', 'Erro ao restaurar backup: ' + error);
-              Alert.alert('Erro', 'Falha ao restaurar backup.');
-            }
-          },
-        },
-      ]
-    );
+    // TODO (offline): implementar restauração de backup
+    Alert.alert('Restaurar', 'Restauração de backup disponível no modo offline.');
   };
 
   const handleExportCSV = async (type: 'sales' | 'products' | 'farms') => {
@@ -276,72 +180,26 @@ export const DataSyncScreen: React.FC<DataSyncScreenProps> = ({ visible, onClose
   };
 
   const handleClearCache = async () => {
-    Alert.alert(
-      'Limpar Cache',
-      'Isso irá remover arquivos temporários. Deseja continuar?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Limpar',
-          onPress: async () => {
-            try {
-              // Simular limpeza de cache
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              setCacheSize(0);
-              await addSyncLog('success', 'Cache limpo com sucesso');
-              Alert.alert('Sucesso', 'Cache limpo com sucesso!');
-              calculateStorageStats();
-            } catch (error) {
-              await addSyncLog('error', 'Erro ao limpar cache: ' + error);
-              Alert.alert('Erro', 'Falha ao limpar cache.');
-            }
-          },
-        },
-      ]
-    );
+    // TODO (offline): limpar cache do storageService
+    setCacheSize(0);
+    await addSyncLog('success', 'Cache limpo');
+    Alert.alert('Sucesso', 'Cache limpo!');
   };
 
   const handleClearHistory = async () => {
-    Alert.alert(
-      'Limpar Histórico',
-      'Isso irá remover TODAS as vendas antigas. Essa ação não pode ser desfeita!',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Limpar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await storageService.removeItem('@agrovendas:sales');
-              await addSyncLog('info', 'Histórico de vendas limpo');
-              Alert.alert('Sucesso', 'Histórico limpo. Reinicie o app.');
-            } catch (error) {
-              await addSyncLog('error', 'Erro ao limpar histórico: ' + error);
-              Alert.alert('Erro', 'Falha ao limpar histórico.');
-            }
-          },
-        },
-      ]
-    );
+    // TODO (offline): implementar com storageService + API
+    Alert.alert('Aviso', 'No modo online, os dados são gerenciados pelo servidor. Para excluir vendas, use a tela de Vendas.');
   };
 
   const handleTestConnection = async () => {
     try {
-      // Simular teste de conexão
       setIsSyncing(true);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const success = Math.random() > 0.2; // 80% de sucesso
-      if (success) {
-        await addSyncLog('success', 'Teste de conexão: OK');
-        Alert.alert('Sucesso', 'Conexão com servidor estabelecida!');
-      } else {
-        await addSyncLog('error', 'Teste de conexão: Falha');
-        Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
-      }
+      await recarregar();
+      await addSyncLog('success', 'Teste de conexão: OK');
+      Alert.alert('Sucesso', 'Conexão com servidor estabelecida!');
     } catch (error) {
-      await addSyncLog('error', 'Erro no teste de conexão: ' + error);
-      Alert.alert('Erro', 'Falha ao testar conexão.');
+      await addSyncLog('error', 'Teste de conexão: Falha');
+      Alert.alert('Erro', 'Não foi possível conectar ao servidor.');
     } finally {
       setIsSyncing(false);
     }

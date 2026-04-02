@@ -3,6 +3,26 @@
 // ══════════════════════════════════════════════════════════
 
 /**
+ * Converte string numérica para float, aceitando vírgula como separador decimal (pt-BR)
+ */
+export const parseDecimal = (value: string): number => {
+  return parseFloat(value.replace(',', '.')) || 0;
+};
+
+/**
+ * Sanitiza input numérico: só permite dígitos e até 2 casas decimais (vírgula ou ponto)
+ */
+export const sanitizeDecimalInput = (value: string): string => {
+  // Permite apenas dígitos e separador decimal (vírgula ou ponto)
+  const cleaned = value.replace(/[^0-9,.]/g, '').replace('.', ',');
+  // Garante no máximo uma vírgula e no máximo 2 dígitos após ela
+  const parts = cleaned.split(',');
+  if (parts.length > 2) return parts[0] + ',' + parts[1].slice(0, 2);
+  if (parts[1] !== undefined) return parts[0] + ',' + parts[1].slice(0, 2);
+  return parts[0];
+};
+
+/**
  * Formata valor monetário para BRL
  */
 export const formatCurrency = (value: number): string => {

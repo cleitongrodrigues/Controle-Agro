@@ -5,6 +5,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Sale, Farm, Product, Goal, Usuario } from '../types';
 import { api } from '../services/api';
+import { useAuth } from './AuthContext';
 
 // -- Mappers snake_case ? camelCase ---------------------
 
@@ -74,6 +75,16 @@ function goalToApi(g: Omit<Goal, 'id'>) {
   };
 }
 
+function productFromApi(r: any): Product {
+  return {
+    id: r.id,
+    nome: r.nome,
+    preco: Number(r.preco),
+    categoria: r.categoria,
+    ativo: r.ativo ?? true,
+  };
+}
+
 // -- Interface do contexto -------------------------------
 
 interface AppContextData {
@@ -104,16 +115,26 @@ interface AppContextData {
 const AppContext = createContext<AppContextData>({} as AppContextData);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [sales, setSales] = useState<Sale[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
+  // Carrega dados quando autenticado, limpa quando deslogado
   useEffect(() => {
-    recarregar();
-  }, []);
+    if (isAuthenticated) {
+      recarregar();
+    } else {
+      setSales([]);
+      setFarms([]);
+      setProducts([]);
+      setGoals([]);
+      setUsuarios([]);
+    }
+  }, [isAuthenticated]);
 
   async function recarregar() {
     try {
@@ -127,7 +148,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       ]);
       setSales(resVendas.dados.map(saleFromApi));
       setFarms(resFazendas.dados.map(farmFromApi));
-      setProducts(resProdutos.dados);
+      setProducts(resProdutos.dados.map(productFromApi));
       setGoals(resMetas.dados.map(goalFromApi));
       setUsuarios(resUsuarios.dados);
     } catch (error) {
@@ -174,13 +195,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // -- Produtos -------------------------------------------
 
   const addProduct = async (product: Omit<Product, 'id'>) => {
-    const res = await api.post<{ dados: any }>('/produtos', product);
-    setProducts(prev => [res.dados, ...prev]);
+    const res = await api.post<{ dados: any }>('/produtos', {
+      nome: product.nome,
+      preco: product.preco,
+      categoria: product.categoria,
+      ativo: product.ativo ?? true,
+    });
+    setProducts(prev => [productFromApi(res.dados), ...prev]);
   };
 
   const updateProduct = async (id: string, product: Product) => {
-    const res = await api.put<{ dados: any }>(`/produtos/${id}`, product);
-    setProducts(prev => prev.map(p => p.id === id ? res.dados : p));
+    const res = await api.put<{ dados: any }>(`/produtos/${id}`, {
+      nome: product.nome,
+      preco: product.preco,
+      categoria: product.categoria,
+      ativo: product.ativo ?? true,
+    });
+    setProducts(prev => prev.map(p => p.id === id ? productFromApi(res.dados) : p));
   };
 
   const deleteProduct = async (id: string) => {

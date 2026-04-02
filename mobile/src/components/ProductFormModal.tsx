@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { Product } from '../types';
+import { parseDecimal, sanitizeDecimalInput } from '../utils/helpers';
 
 interface ProductFormModalProps {
   visible: boolean;
@@ -59,7 +60,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       newErrors.nome = 'Nome é obrigatório';
     }
 
-    const precoNum = parseFloat(preco);
+    const precoNum = parseDecimal(preco);
     if (!preco || isNaN(precoNum) || precoNum <= 0) {
       newErrors.preco = 'Preço deve ser maior que zero';
     }
@@ -75,7 +76,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       id: product?.id || Date.now().toString(),
       nome: nome.trim(),
       categoria: categoria as any,
-      preco: parseFloat(preco),
+      preco: parseDecimal(preco),
     };
 
     onSave(productData);
@@ -158,10 +159,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 style={[styles.input, errors.preco && styles.inputError]}
                 value={preco}
                 onChangeText={(text) => {
-                  setPreco(text);
+                  setPreco(sanitizeDecimalInput(text));
                   setErrors(prev => ({ ...prev, preco: '' }));
                 }}
-                placeholder="Ex: 185.00"
+                placeholder="Ex: 185,00"
                 keyboardType="decimal-pad"
                 placeholderTextColor={Colors.gray[300]}
               />

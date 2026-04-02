@@ -4,21 +4,20 @@
 
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet, Switch } from 'react-native';
-import { AppHeader, SaleItem, HorizontalPicker, SearchBar, ConfirmModal, OfflineBanner, ProductPickerModal } from '../components';
+import { AppHeader, SaleItem, HorizontalPicker, SearchBar, ConfirmModal, ProductPickerModal } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
-import { PRODUCTS } from '../config/data';
 import { Sale, Product } from '../types';
-import { calculateSaleTotal, generateId, formatDate } from '../utils/helpers';
+import { calculateSaleTotal, generateId, formatDate, parseDecimal, sanitizeDecimalInput } from '../utils/helpers';
 import { useToast } from '../contexts/ToastContext';
 import { useApp } from '../contexts/AppContext';
 
 export const VendasScreen: React.FC = () => {
   const { showToast } = useToast();
-  const { farms = [], sales = [], products = [], addSale, updateSale, deleteSale, loading: appLoading, isOffline, unsyncedCount, syncData } = useApp();
+  const { farms = [], sales = [], products = [], addSale, updateSale, deleteSale, loading: appLoading } = useApp();
   
   const [fazendaId, setFazendaId] = useState(farms[0]?.id || '');
-  const [produtoId, setProdutoId] = useState(products[0]?.id || PRODUCTS[0].id);
+  const [produtoId, setProdutoId] = useState(products[0]?.id || '');
   const [quantidade, setQuantidade] = useState('10');
   const [valorUnitario, setValorUnitario] = useState('185');
   const [temDesconto, setTemDesconto] = useState(false);
@@ -26,67 +25,27 @@ export const VendasScreen: React.FC = () => {
   const [descontoValor, setDescontoValor] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Sale | null>(null);
   const [productModalVisible, setProductModalVisible] = useState(false);
 
-  // Vendas iniciais mockadas
-  const initialSales: Sale[] = [
-    {
-      id: '1',
-      fazendaId: '1',
-      fazendaNome: 'Faz. Boa Vista',
-      produto: 'Herbicida Roundup 20L',
-      quantidade: 20,
-      valorUnitario: 185,
-      valorTotal: 3700,
-      data: formatDate(new Date()),
-      sincronizado: false,
-    },
-    {
-      id: '2',
-      fazendaId: '2',
-      fazendaNome: 'Faz. São João',
-      produto: 'Semente Soja RR2 50kg',
-      quantidade: 20,
-      valorUnitario: 412.50,
-      valorTotal: 8250,
-      data: formatDate(new Date()),
-      sincronizado: false,
-    },
-    {
-      id: '3',
-      fazendaId: '3',
-      fazendaNome: 'Faz. Esperança',
-      produto: 'Fertilizante NPK 20kg',
-      quantidade: 50,
-      valorUnitario: 82,
-      valorTotal: 4100,
-      data: formatDate(new Date()),
-      sincronizado: false,
-    },
-  ];
-
-  const allSales = [...sales, ...initialSales];
-  
   // Filtered sales based on search
   const filteredSales = useMemo(() => {
-    if (!searchQuery) return allSales;
+    if (!searchQuery) return sales;
     const query = searchQuery.toLowerCase();
-    return allSales.filter(sale => 
+    return sales.filter(sale => 
       sale.produto.toLowerCase().includes(query) ||
       sale.fazendaNome.toLowerCase().includes(query)
     );
-  }, [allSales, searchQuery]);
+  }, [sales, searchQuery]);
 
-  const qtd = parseFloat(quantidade) || 0;
-  const valor = parseFloat(valorUnitario) || 0;
+  const qtd = parseDecimal(quantidade);
+  const valor = parseDecimal(valorUnitario);
   const subtotal = calculateSaleTotal(qtd, valor);
   
   // Cálculo do desconto
-  const desconto = parseFloat(descontoValor) || 0;
+  const desconto = parseDecimal(descontoValor);
   let valorDesconto = 0;
   if (temDesconto && desconto > 0) {
     if (descontoTipo === 'percentual') {
@@ -99,8 +58,7 @@ export const VendasScreen: React.FC = () => {
 
   const handleProductChange = (prodId: string) => {
     setProdutoId(prodId);
-    const allProducts = [...products, ...PRODUCTS];
-    const product = allProducts.find(p => p.id === prodId);
+    const product = products.find(p => p.id === prodId);
     if (product && product.preco > 0) {
       setValorUnitario(product.preco.toString());
     } else {
@@ -120,14 +78,12 @@ export const VendasScreen: React.FC = () => {
     setProductModalVisible(false);
   };
 
-  const allProducts = [...products, ...PRODUCTS];
-  const selectedProduct = allProducts.find(p => p.id === produtoId);
+  const selectedProduct = products.find(p => p.id === produtoId);
 
   const handleEdit = (sale: Sale) => {
     setEditingId(sale.id);
     setFazendaId(sale.fazendaId);
-    const allProducts = [...products, ...PRODUCTS];
-    setProdutoId(allProducts.find(p => p.nome === sale.produto)?.id || allProducts[0].id);
+    setProdutoId(products.find(p => p.nome === sale.produto)?.id || products[0]?.id || '');
     setQuantidade(sale.quantidade.toString());
     setValorUnitario(sale.valorUnitario.toString());
     
@@ -147,9 +103,8 @@ export const VendasScreen: React.FC = () => {
   const handleCancelEdit = () => {
     setEditingId(null);
     setQuantidade('10');
-    const allProducts = [...products, ...PRODUCTS];
-    setProdutoId(allProducts[0].id);
-    setValorUnitario(allProducts[0].preco.toString());
+    setProdutoId(products[0]?.id || '');
+    setValorUnitario(products[0]?.preco?.toString() || '');
     setTemDesconto(false);
     setDescontoValor('');
     setDescontoTipo('percentual');
@@ -168,20 +123,6 @@ export const VendasScreen: React.FC = () => {
       setDeleteConfirm(null);
     } catch (error) {
       showToast('Erro ao excluir venda', 'error');
-    }
-  };
-
-  const handleSync = async () => {
-    if (unsyncedCount === 0) return;
-    
-    setSyncing(true);
-    try {
-      await syncData();
-      showToast(`${unsyncedCount} ${unsyncedCount === 1 ? 'venda sincronizada' : 'vendas sincronizadas'}!`, 'success');
-    } catch (error) {
-      showToast('Erro ao sincronizar', 'error');
-    } finally {
-      setSyncing(false);
     }
   };
 
@@ -210,7 +151,7 @@ export const VendasScreen: React.FC = () => {
 
     // Validar desconto
     if (temDesconto) {
-      const desc = parseFloat(descontoValor) || 0;
+      const desc = parseDecimal(descontoValor);
       if (desc <= 0) {
         newErrors.desconto = 'Desconto deve ser maior que zero';
       }
@@ -233,8 +174,7 @@ export const VendasScreen: React.FC = () => {
     }
 
     const fazenda = farms.find(f => f.id === fazendaId);
-    const allProducts = [...products, ...PRODUCTS];
-    const produto = allProducts.find(p => p.id === produtoId);
+    const produto = products.find(p => p.id === produtoId);
 
     if (!fazenda || !produto) {
       showToast('Erro ao processar venda', 'error');
@@ -270,9 +210,8 @@ export const VendasScreen: React.FC = () => {
       // Reset form
       setEditingId(null);
       setQuantidade('10');
-      const allProducts = [...products, ...PRODUCTS];
-      setProdutoId(allProducts[0].id);
-      setValorUnitario(allProducts[0].preco.toString());
+      setProdutoId(products[0]?.id || '');
+      setValorUnitario(products[0]?.preco?.toString() || '');
       setTemDesconto(false);
       setDescontoValor('');
       setDescontoTipo('percentual');
@@ -288,10 +227,7 @@ export const VendasScreen: React.FC = () => {
       <AppHeader 
         title="Vendas" 
         subtitle="Registre e consulte vendas"
-        onSyncPress={handleSync}
-        syncing={syncing}
       />
-      <OfflineBanner visible={isOffline} unsyncedCount={unsyncedCount} />
       
       <ScrollView style={styles.scrollContent}>
         <View style={globalStyles.section}>
@@ -339,10 +275,10 @@ export const VendasScreen: React.FC = () => {
                   ]}
                   value={quantidade}
                   onChangeText={(text) => {
-                    setQuantidade(text);
+                    setQuantidade(sanitizeDecimalInput(text));
                     setErrors(prev => ({ ...prev, quantidade: '' }));
                   }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="10"
                 />
                 {errors.quantidade && <Text style={styles.errorText}>{errors.quantidade}</Text>}
@@ -356,10 +292,10 @@ export const VendasScreen: React.FC = () => {
                   ]}
                   value={valorUnitario}
                   onChangeText={(text) => {
-                    setValorUnitario(text);
+                    setValorUnitario(sanitizeDecimalInput(text));
                     setErrors(prev => ({ ...prev, valor: '' }));
                   }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="185"
                 />
                 {errors.valor && <Text style={styles.errorText}>{errors.valor}</Text>}
@@ -436,10 +372,10 @@ export const VendasScreen: React.FC = () => {
                       ]}
                       value={descontoValor}
                       onChangeText={(text) => {
-                        setDescontoValor(text);
+                        setDescontoValor(sanitizeDecimalInput(text));
                         setErrors(prev => ({ ...prev, desconto: '' }));
                       }}
-                      keyboardType="numeric"
+                      keyboardType="decimal-pad"
                       placeholder={descontoTipo === 'percentual' ? '10' : '50'}
                     />
                     {errors.desconto && <Text style={styles.errorText}>{errors.desconto}</Text>}
@@ -549,7 +485,7 @@ export const VendasScreen: React.FC = () => {
         onClose={() => setProductModalVisible(false)}
         onSelect={handleProductSelect}
         selectedId={produtoId}
-        products={allProducts}
+        products={products}
       />
     </View>
   );

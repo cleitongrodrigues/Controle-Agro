@@ -43,6 +43,7 @@ export interface Product {
   nome: string;
   preco: number;
   categoria: 'herbicida' | 'semente' | 'fertilizante' | 'fungicida' | 'outro';
+  ativo?: boolean;
 }
 
 export interface Goal {

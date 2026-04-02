@@ -15,7 +15,7 @@ import { Colors, Spacing, BorderRadius, FontSizes } from '../config/theme';
 interface UsuarioFormModalProps {
   visible: boolean;
   usuario?: Usuario | null;
-  onSave: (usuario: Usuario) => void;
+  onSave: (usuario: Usuario & { senha?: string }) => void;
   onCancel: () => void;
 }
 
@@ -31,6 +31,8 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
   const [cargo, setCargo] = useState('');
   const [nivel, setNivel] = useState<UsuarioNivel>('vendedor');
   const [ativo, setAtivo] = useState(true);
+  const [senha, setSenha] = useState('');
+  const [senhaVisivel, setSenhaVisivel] = useState(false);
 
   useEffect(() => {
     if (usuario) {
@@ -47,6 +49,7 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
       setCargo('');
       setNivel('vendedor');
       setAtivo(true);
+      setSenha('');
     }
   }, [usuario, visible]);
 
@@ -55,8 +58,12 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
       alert('Preencha os campos obrigatórios');
       return;
     }
+    if (!usuario && !senha.trim()) {
+      alert('Senha é obrigatória para novos usuários');
+      return;
+    }
 
-    const novoUsuario: Usuario = {
+    const novoUsuario: Usuario & { senha?: string } = {
       id: usuario?.id || Date.now().toString(),
       nome: nome.trim(),
       email: email.trim().toLowerCase(),
@@ -64,6 +71,7 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
       cargo: cargo.trim() || undefined,
       nivel,
       ativo,
+      ...(senha.trim() ? { senha: senha.trim() } : {}),
     };
 
     onSave(novoUsuario);
@@ -137,6 +145,31 @@ export const UsuarioFormModal: React.FC<UsuarioFormModalProps> = ({
                 placeholder="Ex: Vendedor Pleno"
                 placeholderTextColor={Colors.gray[300]}
               />
+            </View>
+
+            {/* Senha */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Senha {!usuario && <Text style={styles.required}>*</Text>}
+                {usuario && <Text style={{ color: Colors.gray[300], fontWeight: '400' }}> (deixe em branco para manter)</Text>}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  value={senha}
+                  onChangeText={setSenha}
+                  placeholder={usuario ? '••••••••' : 'Mínimo 6 caracteres'}
+                  placeholderTextColor={Colors.gray[300]}
+                  secureTextEntry={!senhaVisivel}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setSenhaVisivel(v => !v)}
+                  style={{ marginLeft: 8, padding: 4 }}
+                >
+                  <Text style={{ fontSize: 16 }}>{senhaVisivel ? '🙈' : '👁️'}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Nível de Acesso */}

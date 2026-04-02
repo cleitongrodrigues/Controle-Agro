@@ -45,13 +45,14 @@ export const UsuarioListScreen: React.FC<UsuarioListScreenProps> = ({
     setFormVisible(true);
   };
 
-  const handleSaveUsuario = async (usuario: Usuario) => {
+  const handleSaveUsuario = async (usuario: Usuario & { senha?: string }) => {
     try {
       if (editingUsuario) {
         await updateUsuario(usuario.id, usuario);
         showToast('Usuário atualizado com sucesso!', 'success');
       } else {
-        await addUsuario(usuario);
+        if (!usuario.senha) throw new Error('Senha obrigatória');
+        await addUsuario({ ...usuario, senha: usuario.senha });
         showToast('Usuário cadastrado com sucesso!', 'success');
       }
       setFormVisible(false);

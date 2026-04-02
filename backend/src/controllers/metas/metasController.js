@@ -50,10 +50,10 @@ module.exports = {
 
     async criarMeta(req, res){
         try {
-            const { nome, valor_meta, categoria, ativo, criado_em, atualizado_em } = req.body;
-            const sql = `INSERT INTO metas (nome, valor_meta, categoria, ativo, criado_em, atualizado_em)
-                         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`;
-            const result = await db.query(sql, [nome, valor_meta, categoria, ativo !== undefined ? ativo : true, criado_em || new Date(), atualizado_em || new Date()]);
+            const { nome, valor_meta, categoria, ativo } = req.body;
+            const sql = `INSERT INTO metas (nome, valor_meta, categoria, ativo)
+                         VALUES ($1, $2, $3, $4) RETURNING *`;
+            const result = await db.query(sql, [nome, valor_meta, categoria, ativo !== undefined ? ativo : true]);
 
             return res.status(201).json({
                 sucesso: true,

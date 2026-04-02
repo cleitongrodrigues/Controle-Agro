@@ -52,15 +52,13 @@ module.exports = {
         try {
             const { fazenda_id, fazenda_nome, produto, quantidade, valor_unitario,
                     valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data,
-                    sincronizado, criado_em, atualizado_em } = req.body;
+                    sincronizado } = req.body;
             const sql = `INSERT INTO vendas (fazenda_id, fazenda_nome, produto, quantidade, valor_unitario,
-                         valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data,
-                         sincronizado, criado_em, atualizado_em)
-                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`;
+                         valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data, sincronizado)
+                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`;
             
             const result = await db.query(sql, [fazenda_id, fazenda_nome, produto, quantidade, valor_unitario,
-                valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data,
-                sincronizado, criado_em, atualizado_em]);
+                valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data, sincronizado]);
             
             return res.status(201).json({
                 sucesso: true,
@@ -81,7 +79,7 @@ module.exports = {
             const { id } = req.params;
             const { fazenda_id, fazenda_nome, produto, quantidade, valor_unitario,
                     valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data,
-                    sincronizado, atualizado_em } = req.body;
+                    sincronizado } = req.body;
 
             const sql = `UPDATE vendas SET fazenda_id = $1, fazenda_nome = $2, produto = $3, quantidade = $4, valor_unitario = $5,
                          valor_total = $6, desconto = $7, desconto_tipo = $8, valor_com_desconto = $9, categoria = $10, data = $11,
@@ -89,7 +87,7 @@ module.exports = {
 
             const result = await db.query(sql, [fazenda_id, fazenda_nome, produto, quantidade, valor_unitario,
                 valor_total, desconto, desconto_tipo, valor_com_desconto, categoria, data,
-                sincronizado, atualizado_em, id]);
+                sincronizado, id]);
 
             if (result.rowCount === 0) {
                 return res.status(404).json({

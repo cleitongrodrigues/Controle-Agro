@@ -42,10 +42,10 @@ export const ProductListScreen: React.FC<ProductListScreenProps> = ({ visible, o
   const handleSaveProduct = async (product: Product) => {
     try {
       if (editingProduct) {
-        await updateProduct(product.id, product);
+        await updateProduct(product.id, { ...product, ativo: editingProduct.ativo ?? true });
         showToast('Produto atualizado com sucesso!', 'success');
       } else {
-        await addProduct(product);
+        await addProduct({ ...product, ativo: true });
         showToast('Produto cadastrado com sucesso!', 'success');
       }
       setProductFormVisible(false);

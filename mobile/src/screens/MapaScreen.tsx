@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { AppHeader, MetricCard, FarmItem, FarmHistoryModal, SearchBar, OfflineBanner } from '../components';
+import { AppHeader, MetricCard, FarmItem, FarmHistoryModal, SearchBar } from '../components';
 import { globalStyles } from '../styles/global';
 import { Colors, Spacing, BorderRadius, FontSizes, Shadows } from '../config/theme';
 import { FARM_HISTORY } from '../config/data';
@@ -13,12 +13,11 @@ import { useApp } from '../contexts/AppContext';
 import { useToast } from '../contexts/ToastContext';
 
 export const MapaScreen: React.FC = () => {
-  const { isOffline, unsyncedCount, syncData, farms = [] } = useApp();
+  const { farms = [] } = useApp();
   const { showToast } = useToast();
   const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [syncing, setSyncing] = useState(false);
 
   const metrics: Metric[] = [
     {
@@ -51,18 +50,6 @@ export const MapaScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleSync = async () => {
-    try {
-      setSyncing(true);
-      await syncData();
-      showToast('Dados sincronizados!', 'success');
-    } catch (error) {
-      showToast('Erro ao sincronizar', 'error');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   // Filtrar fazendas por busca
   const filteredFarms = useMemo(() => {
     if (!farms || !Array.isArray(farms)) return [];
@@ -85,11 +72,7 @@ export const MapaScreen: React.FC = () => {
       <AppHeader 
         title="AgroVendas" 
         subtitle="Sistema de vendas"
-        onSyncPress={handleSync}
-        syncing={syncing}
       />
-      
-      {isOffline && <OfflineBanner visible={isOffline} unsyncedCount={unsyncedCount} />}
       
       <ScrollView style={styles.scrollContent}>
         {/* Métricas */}

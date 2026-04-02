@@ -6,7 +6,6 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Spacing, FontSizes } from '../config/theme';
 import { SyncBadge } from './SyncBadge';
-import { useApp } from '../contexts/AppContext';
 
 interface AppHeaderProps {
   title: string;
@@ -25,8 +24,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   syncing = false,
   onBack,
 }) => {
-  const { unsyncedCount } = useApp();
-
   return (
     <View style={styles.header}>
       <View style={styles.decorCircle1} />
@@ -46,7 +43,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </View>
         <View style={styles.rightContent}>
           <SyncBadge 
-            count={unsyncedCount} 
+            count={0} 
             onPress={onSyncPress}
             syncing={syncing}
           />
