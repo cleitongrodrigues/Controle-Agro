@@ -75,6 +75,19 @@ function goalToApi(g: Omit<Goal, 'id'>) {
   };
 }
 
+function farmToApi(f: Omit<Farm, 'id'>) {
+  return {
+    nome: f.nome,
+    proprietario: f.proprietario,
+    hectares: f.hectares,
+    localizacao: f.localizacao,
+    telefone: f.telefone,
+    status: f.status,
+    latitude: f.latitude,
+    longitude: f.longitude,
+  };
+}
+
 function productFromApi(r: any): Product {
   return {
     id: r.id,
@@ -178,12 +191,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // -- Fazendas -------------------------------------------
 
   const addFarm = async (farm: Omit<Farm, 'id'>) => {
-    const res = await api.post<{ dados: any }>('/fazendas', farm);
+    const res = await api.post<{ dados: any }>('/fazendas', farmToApi(farm));
     setFarms(prev => [farmFromApi(res.dados), ...prev]);
   };
 
   const updateFarm = async (id: string, farm: Farm) => {
-    const res = await api.put<{ dados: any }>(`/fazendas/${id}`, farm);
+    const res = await api.put<{ dados: any }>(`/fazendas/${id}`, farmToApi(farm));
     setFarms(prev => prev.map(f => f.id === id ? farmFromApi(res.dados) : f));
   };
 
